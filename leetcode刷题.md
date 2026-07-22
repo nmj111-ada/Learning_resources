@@ -29,6 +29,40 @@ dp[i] = max(nums[i], dp[i-1] + nums[i])
 ## 关键词触发
 "最大子数组和" / "连续子数组最大和" → Kadane / DP
 
+2.Merge Intervals（合并区间）
+**难度**: Medium | **标签**: Array, Sorting
+
+## 题目一句话
+把重叠的区间合并成一个，返回不重叠的区间列表。
+
+## 三步走
+1. 按左端点从小到大排序
+2. 遍历每个区间，和结果列表里最后一个区间比较
+3. 不重叠 → 直接加进去；重叠 → 右端点取 max
+
+## 判断重叠
+当前 [c,d]，上一个 [a,b]：
+- 不重叠：b < c → 新增
+- 重叠：b ≥ c → 合并成 [a, max(b,d)]
+
+## 为什么必须排序？
+不排序的话输入 [[4,7],[1,4]] 无法直接遍历合并，因为后面的区间左端点可能更小。排序保证左端点递增，只需线性扫描一遍。
+
+## 易错点
+- 先排序再遍历，不是直接遍历
+- 合并时右端点取 Math.max（当前区间可能完全被上一个包住）
+- 返回 int[][]，最后要用 result.toArray(new int[result.size()][])
+
+## Java 语法知识点（这题涉及的）
+- `Arrays.sort(arr, (a,b) -> a[0] - b[0])`：按二维数组每行的第一列排序
+- `List<int[]> result = new ArrayList<>()`：动态数组，存不确定数量的结果
+- `result.get(size()-1)`：取最后一个元素（Java 没有 result[-1] 的写法）
+- `result.add(cur)`：追加元素
+- `result.toArray(new int[result.size()][])`：List 转二维数组返回
+
+## 通用套路
+排序 + 遍历 + 和结果里最后一个比较 → 很多"合并/去重"题都这么干。
+
 子串
 1.Subarray Sum Equals K（和为 K 的子数组）
 **难度**: Medium | **标签**: Array, Hash Table, Prefix Sum
