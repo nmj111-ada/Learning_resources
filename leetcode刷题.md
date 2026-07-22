@@ -1,3 +1,34 @@
+数组
+# 1. Maximum Subarray（最大子数组和）
+**难度**: Medium | **标签**: Array, Divide and Conquer, DP，动态规划
+
+## 题目一句话
+找连续子数组，使和最大。
+
+## 核心决策：接不接？
+
+走到 nums[i]，你有两个选择：
+- 接到前面：curSum + nums[i]
+- 另起炉灶：nums[i]（前面是累赘，不要了）
+
+**选更大的那个** → curSum = max(nums[i], curSum + nums[i])
+
+
+## 为什么叫 Kadane 算法？
+本质是动态规划：
+dp[i] = 以 i 结尾的最大子数组和
+dp[i] = max(nums[i], dp[i-1] + nums[i])
+
+空间优化到 O(1)：只用 curSum 代替整个 dp 数组。
+
+## 易错点
+- 初始值必须是 nums[0]，不能是 0（全是负数时 0 会错）
+- curSum 的决策公式不能写成 `curSum + nums[i] > nums[i]`（负负可能溢出）
+- 子数组至少包含一个元素，不能是空的
+
+## 关键词触发
+"最大子数组和" / "连续子数组最大和" → Kadane / DP
+
 子串
 1.Subarray Sum Equals K（和为 K 的子数组）
 **难度**: Medium | **标签**: Array, Hash Table, Prefix Sum
@@ -366,3 +397,48 @@ previousZeros 保持不变，本质上把连续的 1 视为一个整体区块。
 - 必须是**被 0 包围**的 1，光一边有 0 不算（prevZeros = -1 时不算）
 - 循环结束后要额外处理末尾的 0 段
 - 只做一次操作，取最大收益，不是累加所有
+
+Maximize Active Section with Trade II
+**难度**: Hard | **标签**: String, Binary Search, Sparse Table, Prefix Sum
+
+## 和上一题的区别
+上一题：整个 s 做一次操作。
+这题：给你很多 query [l, r]，每个 query 独立——只在子串 s[l..r] 内操作，但结果统计整个 s 的 1 的个数。
+
+## 核心公式
+答案 = 整个 s 的 1 的总数 + 子串内操作的最大收益
+totalOnes 固定不变，收益在子串内算（逻辑同上一题）。
+
+## 预处理：把 0-段信息全部提取
+扫描一次 s，记录每个 0-段的 start、end、length，以及：
+- zeroRunId[i]：位置 i 属于哪个 0-段（是 1 则 -1）
+- nextZeroRun[i]：位置 i 及其右边第一个 0-段编号
+- previousZeroRun[i]：位置 i 及其左边最后一个 0-段编号
+
+## pairGain：相邻两段 0 之间的收益提前算
+pairGain[i] = length[i] + length[i+1]
+代表第 i 和第 i+1 个 0-段之间的 1-段，操作后能增加的活跃数。
+
+## 单个 query 的三种候选（取最大）
+设区间内第一个 0-段 = firstRun，最后一个 = lastRun：
+
+1. **左边界截断**：firstRun 和 firstRun+1 之间的 1-段
+   两个 0-段都可能被 query 边界截断 → clippedLength 手动算
+2. **右边界截断**：lastRun-1 和 lastRun 之间的 1-段
+   同理 clippedLength 手动算
+3. **中间完整**：firstRun+1 到 lastRun-2 之间的 pairGain
+   两个 0-段都完全在区间内，收益 = pairGain[i] 不变
+   用 Sparse Table  O(1) 查最大值
+
+## Sparse Table（稀疏表）— RMQ
+提前打表存所有区间长度的最大值。查询任意区间时用两段拼：
+取最大的 2^level ≤ 区间长度，用前后两段覆盖整个区间，O(1)。
+
+## 复杂度
+预处理 O(n log n)，每个 query O(1)，总 O(n log n + q)。
+
+## 易错点
+- 返回类型是 int[] 不是 List<Integer>
+- 0-段 < 2 个时无法操作，收益 = 0
+- clippedLength 要考虑 run 越界情况
+- 左右边界可能是同一个 pair（firstRun+1 == lastRun），中间部分为空
