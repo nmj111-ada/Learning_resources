@@ -143,6 +143,55 @@ class Solution {
 ## 关键词触发
 "轮转数组" / "向右移动 k 位" / "原地 O(1)" → 三次反转
 
+4. 238. Product of Array Except Self / 除自身以外数组的乘积
+**难度**: Medium / 中等 | **标签**: Array, Prefix Sum / 数组, 前缀积
+
+## 原题 / Original Problem
+Given an integer array `nums`, return an array `answer` such that `answer[i]` is equal to the product of all the elements of `nums` except `nums[i]`. You must write an algorithm in O(n) time and without using division.
+
+给你一个整数数组 nums，返回数组 answer，其中 answer[i] 等于 nums 中除了 nums[i] 之外其余各元素的乘积。不要使用除法，O(n) 时间。
+
+**示例**: nums = [1,2,3,4] → [24,12,8,6]
+
+## 代码 / Code
+```java
+class Solution {
+    public int[] productExceptSelf(int[] nums) {
+        int n = nums.length;
+        int[] answer = new int[n];
+        // 第一遍 左→右：answer[i] = 左边所有数的乘积
+        answer[0] = 1;
+        for (int i = 1; i < n; i++) {
+            answer[i] = answer[i - 1] * nums[i - 1];
+        }
+        // 第二遍 右→左：乘上右边所有数的乘积
+        int right = 1;
+        for (int i = n - 1; i >= 0; i--) {
+            answer[i] *= right;
+            right *= nums[i];
+        }
+        return answer;
+    }
+}
+```
+
+## 核心思路：前缀积 × 后缀积
+answer[i] = 左边累乘 × 右边累乘
+- 第一遍 左→右：answer[i] = 左边所有数的乘积
+- 第二遍 右→左：answer[i] *= right（右边累乘），right 跟着更新
+
+## 为什么 i 从 1 开始不是 0？
+answer[0] 左边没有元素，积为 1，需要手动设。
+如果 i=0 进去：answer[0] = answer[-1] × nums[-1] → 越界 💥
+
+## 易错点
+- 初始 answer[0] = 1，right = 1
+- 不能用除法（题目禁止），不能两层循环（O(n²) 超时）
+- 空间 O(1)（不算 answer 数组），只用一个 right 变量
+
+## 关键词触发
+"除自身外乘积" / "不用除法" / "O(n)" → 前缀积 + 后缀积
+
 子串 / Subarray
 
 1. 560. Subarray Sum Equals K / 和为 K 的子数组
