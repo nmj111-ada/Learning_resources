@@ -192,6 +192,54 @@ answer[0] 左边没有元素，积为 1，需要手动设。
 ## 关键词触发
 "除自身外乘积" / "不用除法" / "O(n)" → 前缀积 + 后缀积
 
+5. 73. Set Matrix Zeroes / 矩阵置零
+**难度**: Medium / 中等 | **标签**: Array, Hash Table, Matrix / 数组, 哈希表, 矩阵
+
+## 原题 / Original Problem
+Given an m x n integer matrix, if an element is 0, set its entire row and column to 0's. You must do it **in place**.
+
+给定一个 m×n 的矩阵，如果一个元素为 0，则将其所在行和列的所有元素都设为 0。使用原地算法。
+
+**示例**: [[1,1,1],[1,0,1],[1,1,1]] → [[1,0,1],[0,0,0],[1,0,1]]
+
+## 代码 / Code
+```java
+class Solution {
+    public void setZeroes(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        boolean firstRowZero = false, firstColZero = false;
+        for (int j = 0; j < n; j++) if (matrix[0][j] == 0) firstRowZero = true;
+        for (int i = 0; i < m; i++) if (matrix[i][0] == 0) firstColZero = true;
+        // 内部遇 0 → 标记到第一行和第一列
+        for (int i = 1; i < m; i++)
+            for (int j = 1; j < n; j++)
+                if (matrix[i][j] == 0) { matrix[i][0] = 0; matrix[0][j] = 0; }
+        // 根据标记把内部非零元素也清零（关键！）
+        for (int i = 1; i < m; i++)
+            for (int j = 1; j < n; j++)
+                if (matrix[i][0] == 0 || matrix[0][j] == 0) matrix[i][j] = 0;
+        // 最后处理第一行和第一列
+        if (firstRowZero) for (int j = 0; j < n; j++) matrix[0][j] = 0;
+        if (firstColZero) for (int i = 0; i < m; i++) matrix[i][0] = 0;
+    }
+}
+```
+
+## 核心思路：第一行 + 第一列当标记板，O(1) 额外空间
+不能边遍历边改 → 分不清"原本是 0"还是"后来清的"。
+① 两布尔记录第一行/列本身有无 0
+② 内部遇 0 → 标记到 matrix[i][0] 和 matrix[0][j]
+③ 走每个内部位置，查标记 → 非零也清零
+④ 根据布尔处理第一行和第一列
+
+## 易错点
+- 第三步不是"把 0 改成 0"，是把和 0 同行同列的**非零元素**清零
+- 第一行/列要先独立检查，最后单独处理（否则标记数据被污染）
+- 顺序：标记 → 清零内部 → 清零第一行/列，不能乱
+
+## 关键词触发
+"矩阵置零" / "原地" / "行和列清零" → 首行首列标记法
+
 子串 / Subarray
 
 1. 560. Subarray Sum Equals K / 和为 K 的子数组
