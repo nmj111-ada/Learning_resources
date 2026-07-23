@@ -92,6 +92,57 @@ class Solution {
 ## 通用套路
 排序 + 遍历 + 和结果里最后一个比较 → 很多"合并/去重"题都这么干。
 
+3. 189. Rotate Array / 轮转数组
+**难度**: Medium / 中等 | **标签**: Array, Math, Two Pointers / 数组, 数学, 双指针
+
+## 原题 / Original Problem
+Given an integer array `nums`, rotate the array to the right by `k` steps, where `k` is non-negative.
+
+给定一个整数数组 nums，将数组中的元素向右轮转 k 个位置，其中 k 是非负数。
+
+**示例**: nums = [1,2,3,4,5,6,7], k=3 → [5,6,7,1,2,3,4]
+
+## 代码 / Code（三次反转，O(1) 空间）
+```java
+class Solution {
+    public void rotate(int[] nums, int k) {
+        int n = nums.length;
+        k %= n;
+        reverse(nums, 0, n - 1);
+        reverse(nums, 0, k - 1);
+        reverse(nums, k, n - 1);
+    }
+    private void reverse(int[] nums, int l, int r) {
+        while (l < r) {
+            int tmp = nums[l];
+            nums[l] = nums[r];
+            nums[r] = tmp;
+            l++; r--;
+        }
+    }
+}
+```
+
+## 核心思路：三次反转
+① 全反转 → 尾部 k 个元素到了前面，但顺序反了
+② 前 k 个反转 → 纠正前面 k 个的顺序
+③ 后 n-k 个反转 → 纠正后面的顺序
+反转两次 = 回到原位，恰到好处只翻转一次。
+
+## 三种解法
+| 方法 | 时间 | 空间 |
+|------|------|------|
+| 逐位模拟 | O(n·k) | O(1) |
+| 新数组拷贝 | O(n) | O(n) |
+| **三次反转** | O(n) | **O(1)** |
+
+## 易错点
+- k %= n 不能忘，k 可能比 n 大
+- reverse 边界：前 k 个 [0, k-1]，后面 [k, n-1]
+
+## 关键词触发
+"轮转数组" / "向右移动 k 位" / "原地 O(1)" → 三次反转
+
 子串 / Subarray
 
 1. 560. Subarray Sum Equals K / 和为 K 的子数组
