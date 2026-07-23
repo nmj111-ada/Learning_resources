@@ -1,44 +1,79 @@
 数组
-# 1. Maximum Subarray（最大子数组和）
-**难度**: Medium | **标签**: Array, Divide and Conquer, DP，动态规划
+# 数组 / Array
 
-## 题目一句话
-找连续子数组，使和最大。
+# 1. 53. Maximum Subarray / 最大子数组和
+**难度**: Medium / 中等 | **标签**: Array, DP / 数组, 动态规划
+
+## 原题 / Original Problem
+Given an integer array `nums`, find the subarray with the largest sum, and return its sum.
+
+给你一个整数数组 nums，请你找出一个具有最大和的连续子数组（至少包含一个元素），返回其最大和。
+
+**示例**: nums = [-2,1,-3,4,-1,2,1,-5,4] → 6（子数组 [4,-1,2,1]）
+
+## 代码 / Code
+```java
+class Solution {
+    public int maxSubArray(int[] nums) {
+        int curSum = nums[0];   // 以当前位置结尾的最大和
+        int maxSum = nums[0];   // 全局最大值
+        for (int i = 1; i < nums.length; i++) {
+            curSum = Math.max(nums[i], curSum + nums[i]); // 接 or 不接
+            maxSum = Math.max(maxSum, curSum);
+        }
+        return maxSum;
+    }
+}
+```
 
 ## 核心决策：接不接？
-
 走到 nums[i]，你有两个选择：
 - 接到前面：curSum + nums[i]
 - 另起炉灶：nums[i]（前面是累赘，不要了）
-
 **选更大的那个** → curSum = max(nums[i], curSum + nums[i])
 
-
 ## 为什么叫 Kadane 算法？
-本质是动态规划：
-dp[i] = 以 i 结尾的最大子数组和
-dp[i] = max(nums[i], dp[i-1] + nums[i])
-
+本质是动态规划：dp[i] = 以 i 结尾的最大子数组和 = max(nums[i], dp[i-1] + nums[i])
 空间优化到 O(1)：只用 curSum 代替整个 dp 数组。
 
 ## 易错点
 - 初始值必须是 nums[0]，不能是 0（全是负数时 0 会错）
-- curSum 的决策公式不能写成 `curSum + nums[i] > nums[i]`（负负可能溢出）
 - 子数组至少包含一个元素，不能是空的
 
 ## 关键词触发
 "最大子数组和" / "连续子数组最大和" → Kadane / DP
 
-2.Merge Intervals（合并区间）
-**难度**: Medium | **标签**: Array, Sorting
+2. 56. Merge Intervals / 合并区间
+**难度**: Medium / 中等 | **标签**: Array, Sorting / 数组, 排序
 
-## 题目一句话
-把重叠的区间合并成一个，返回不重叠的区间列表。
+## 原题 / Original Problem
+Given an array of `intervals` where `intervals[i] = [starti, endi]`, merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
 
-## 三步走
-1. 按左端点从小到大排序
-2. 遍历每个区间，和结果列表里最后一个区间比较
-3. 不重叠 → 直接加进去；重叠 → 右端点取 max
+以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi]。请你合并所有重叠的区间，并返回一个不重叠的区间数组。
+
+**示例**: [[1,3],[2,6],[8,10],[15,18]] → [[1,6],[8,10],[15,18]]
+
+## 代码 / Code
+```java
+class Solution {
+    public int[][] merge(int[][] intervals) {
+        // 1. 按左端点排序（必须！）
+        Arrays.sort(intervals, (a, b) -> a[0] - b[0]);
+        List<int[]> result = new ArrayList<>();
+        for (int[] cur : intervals) {
+            // 不重叠：上一个末尾 < 当前开头
+            if (result.isEmpty() || result.get(result.size()-1)[1] < cur[0]) {
+                result.add(cur);
+            } else {
+                // 重叠：合并，右端点取 max
+                int[] last = result.get(result.size()-1);
+                last[1] = Math.max(last[1], cur[1]);
+            }
+        }
+        return result.toArray(new int[result.size()][]);
+    }
+}
+```
 
 ## 判断重叠
 当前 [c,d]，上一个 [a,b]：
@@ -46,92 +81,162 @@ dp[i] = max(nums[i], dp[i-1] + nums[i])
 - 重叠：b ≥ c → 合并成 [a, max(b,d)]
 
 ## 为什么必须排序？
-不排序的话输入 [[4,7],[1,4]] 无法直接遍历合并，因为后面的区间左端点可能更小。排序保证左端点递增，只需线性扫描一遍。
+不排序的话输入 [[4,7],[1,4]] 无法直接遍历合并。排序保证左端点递增，只需线性扫描。
 
-## 易错点
-- 先排序再遍历，不是直接遍历
-- 合并时右端点取 Math.max（当前区间可能完全被上一个包住）
-- 返回 int[][]，最后要用 result.toArray(new int[result.size()][])
-
-## Java 语法知识点（这题涉及的）
-- `Arrays.sort(arr, (a,b) -> a[0] - b[0])`：按二维数组每行的第一列排序
-- `List<int[]> result = new ArrayList<>()`：动态数组，存不确定数量的结果
-- `result.get(size()-1)`：取最后一个元素（Java 没有 result[-1] 的写法）
-- `result.add(cur)`：追加元素
-- `result.toArray(new int[result.size()][])`：List 转二维数组返回
+## Java 语法知识点
+- `Arrays.sort(arr, (a,b) -> a[0] - b[0])`：按二维数组第一列排序
+- `List<int[]> result = new ArrayList<>()`：动态数组
+- `result.get(size()-1)`：取最后一个元素（Java 没有 [-1]）
+- `result.toArray(new int[result.size()][])`：List 转二维数组
 
 ## 通用套路
 排序 + 遍历 + 和结果里最后一个比较 → 很多"合并/去重"题都这么干。
 
-子串
-1.Subarray Sum Equals K（和为 K 的子数组）
-**难度**: Medium | **标签**: Array, Hash Table, Prefix Sum
+子串 / Subarray
 
-## 题目一句话
-数组里有多少个连续子数组，加起来等于 k。
+1. 560. Subarray Sum Equals K / 和为 K 的子数组
+**难度**: Medium / 中等 | **标签**: Array, Hash Table, Prefix Sum / 数组, 哈希表, 前缀和
+
+## 原题 / Original Problem
+Given an array of integers `nums` and an integer `k`, return the total number of subarrays whose sum equals to `k`.
+
+给你一个整数数组 nums 和一个整数 k，请你统计并返回该数组中和为 k 的连续子数组的个数。
+
+**示例**: nums = [1,1,1], k = 2 → 2；nums = [1,2,3], k = 3 → 2
+
+## 代码 / Code
+```java
+class Solution {
+    public int subarraySum(int[] nums, int k) {
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(0, 1);  // 空前缀和算一次
+        int prefixSum = 0, count = 0;
+        for (int num : nums) {
+            prefixSum += num;
+            count += map.getOrDefault(prefixSum - k, 0);
+            map.put(prefixSum, map.getOrDefault(prefixSum, 0) + 1);
+        }
+        return count;
+    }
+}
+```
 
 ## 先搞懂前缀和
 前缀和 = 从数组开头一直加到当前位置的总和。
+公式：**子数组[i到j]的和 = 前缀和[j] - 前缀和[i-1]**
 
-写成公式：**子数组[i到j]的和 = 前缀和[j] - 前缀和[i-1]**
+## 核心推导（移项）
+前缀和[j] - 前缀和[i-1] = k → 前缀和[j] - k = 前缀和[i-1]
+翻译：**走到 j，前缀和是 X。去表里查之前有几个 X-k，有几个就找到几个。**
 
-## 核心推导（初中数学移项）
+## 为什么 HashMap value 是次数？
+同一前缀和可能在不同位置出现多次，每个位置都能和当前 j 凑出一个子数组。
 
-题目要求子数组和等于 k：
-
-前缀和[j] - 前缀和[i-1] = k
-
-前缀和[j] - k = 前缀和[i-1]
-
-
-翻译成人话：**走到位置 j，前缀和是 X。去查表——之前有几个位置的前缀和等于 X-k？有几个就找到几个和是 k 的子数组。**
-
-## 为什么 HashMap 的 value 是次数不是下标？
-
-同一个前缀和可能在不同位置出现多次（因为数组有正有负），
-每个位置都能和当前 j 凑出一个子数组，所以要数"出现了几次"。
-
-## 为什么一开始要 put(0, 1)？
-
-代表"还没开始时累计是 0"，算一条记录。
-当某个前缀和刚好等于 k 时，X - k = 0，需要 0 在表里才能计数。
-
-nums = [3], k = 3 前缀和 = 3，X - k = 3 - 3 = 0 → 表里有 0 → 找到一个子数组 [3]
+## 为什么 put(0, 1)？
+替代"空前缀和"。当前缀和正好等于 k 时，需要 0 在表里才能计数。
+例：[3], k=3 → prefixSum=3, 找 3-3=0 → 表里有 → count=1
 
 ## 和 Two Sum 的关系
-
 | | Two Sum | 这题 |
 |---|---|---|
 | 表里存什么 | 数值 | 前缀和 |
-| 找什么 | target - 当前数 | 当前前缀和 - k |
-| value 是啥 | 下标 | 出现次数 |
-
-套路一样：遍历时去表里找配对，O(1) 查找把 O(n²) 降到 O(n)。
+| 找什么 | target-当前数 | 当前前缀和-k |
+| value | 下标 | 出现次数 |
 
 ## 易错点
-- 先查表再往表里放当前前缀和（否则 k=0 时会把自己算进去，多算一次）
-- 别忘了 map.put(0, 1)
-哈希表
-1.两数之和（简单）
-难度: Easy |标签: Array, Hash Table |日期: 2026-07-18
-题目一句话
-在数组里找两个数，加起来等于 target，返回下标。
-解法对比
-暴力 O(n²) / O(1)
-两层循环，每对都试一遍。
+- 先查再放（k=0 时防把自己算进去）
+- map.put(0, 1) 不能忘
+哈希表 / Hash Table
+1. 1. Two Sum / 两数之和（简单）❌ 做错过
+**难度**: Easy / 简单 | **标签**: Array, Hash Table / 数组, 哈希表 | 日期: 2026-07-18
+
+## 原题 / Original Problem
+Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`. You may assume that each input would have exactly one solution, and you may not use the same element twice.
+
+给定一个整数数组 nums 和一个整数目标值 target，请你在该数组中找出和为目标值 target 的那两个整数，并返回它们的数组下标。每种输入只会对应一个答案，不能使用两次相同的元素。
+
+## 代码 / Code
+```java
+class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        // key: 数值, value: 下标
+        Map<Integer, Integer> seen = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            if (seen.containsKey(complement)) {
+                return new int[]{seen.get(complement), i};
+            }
+            seen.put(nums[i], i);
+        }
+        return new int[]{};
+    }
+}
+```
+
+## 解法对比
+**暴力 O(n²) / O(1)**：两层循环，每对都试一遍。
 坑：记得写 if 判断，别直接 return ← 我犯过的错
-哈希 O(n) / O(n)
-complement = target - nums[i]，去 HashMap 里找。
+
+**哈希 O(n) / O(n)**：complement = target - nums[i]，去 HashMap 里找。
 走到一个数，不问"前面谁能和我配对"，而是问"我需要的人之前出现过吗"。
-核心代码（Java）
-// 哈希法：seen.containsKey(complement) 是关键
+
+## 关键词触发
+"两数之和" / "找配对" → 第一反应 HashMap
 
 
-2. Group Anagrams（字母异位词分组）
-**难度**: Medium | **标签**: Array, Hash Table, String, Sorting
+2. 49. Group Anagrams / 字母异位词分组
+**难度**: Medium / 中等 | **标签**: Array, Hash Table, String, Sorting / 数组, 哈希表, 字符串, 排序
 
-## 题目一句话
-把字母组成完全相同的单词分到同一组。
+## 原题 / Original Problem
+Given an array of strings `strs`, group the anagrams together. You can return the answer in any order.
+
+给你一个字符串数组，请你将字母异位词组合在一起。可以按任意顺序返回结果列表。
+
+**示例**: strs = ["eat", "tea", "tan", "ate", "nat", "bat"] → [["bat"],["nat","tan"],["ate","eat","tea"]]
+
+## 代码 / Code
+### 排序法
+```java
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            char[] chars = s.toCharArray();
+            Arrays.sort(chars);
+            String key = new String(chars);   // "eat" → "aet"
+            if (!map.containsKey(key)) {
+                map.put(key, new ArrayList<>());
+            }
+            map.get(key).add(s);
+        }
+        return new ArrayList<>(map.values());
+    }
+}
+```
+### 计数法（⭐ 加分，O(n·k)）
+```java
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            int[] count = new int[26];
+            for (char c : s.toCharArray()) {
+                count[c - 'a']++;
+            }
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 26; i++) {
+                sb.append('#').append(count[i]); // # 防歧义
+            }
+            String key = sb.toString();
+            if (!map.containsKey(key)) {
+                map.put(key, new ArrayList<>());
+            }
+            map.get(key).add(s);
+        }
+        return new ArrayList<>(map.values());
+    }
+}
+```
 
 ## 什么是字母异位词
 字母种类和个数完全相同，仅是排列顺序不同。
@@ -141,22 +246,10 @@ complement = target - nums[i]，去 HashMap 里找。
 给每个单词生成一个"签名"，异位词的签名一定相同。
 签名 → HashMap 的 key → 签名相同的单词自动归到同一组。
 
-## 解法一：排序法 O(n·k log k)
-每个单词的字符数组排序 → 排完后异位词完全相同 → 作为 key 放入 HashMap。
-
 ### 关键 API
 - `s.toCharArray()` — String 不可变，拆成 char[] 才能排序
 - `Arrays.sort(chars)` — 原地排序
 - `new String(chars)` — char[] 拼回 String
-
-## 解法二：计数法 O(n·k) ⭐ 加分
-不排序，统计 26 个字母各出现几次，拼成签名 "#1#0#0#0#1#..."。
-
-### 为什么不用排序？
-排序是 k log k，统计计数只需遍历一遍单词 k。
-k 很大时，计数法明显更快。
-
-### 关键点
 - `c - 'a'`：字符相减 = ASCII 差值，'e' - 'a' = 4 → count[4]++
 - 用 `#` 分隔每个数字，防止拼接歧义：#1#12 ≠ #11#2
 
@@ -169,139 +262,258 @@ k 很大时，计数法明显更快。
 和 Two Sum 一样：找同类项 → HashMap
 
 
-2.双指针问题
-1.Move Zeroes（移动零）
-**难度**: Easy | **标签**: Array, Two Pointers | **日期**: 2026-07-18
+双指针问题 / Two Pointers
 
-## 题目一句话
-把所有 0 挪到数组末尾，非零元素保持原有顺序，原地操作。
+1. 283. Move Zeroes / 移动零
+**难度**: Easy / 简单 | **标签**: Array, Two Pointers / 数组, 双指针
+
+## 原题 / Original Problem
+Given an integer array `nums`, move all `0`'s to the end of it while maintaining the relative order of the non-zero elements. You must do this **in-place** without making a copy of the array.
+
+给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。必须在不复制数组的情况下原地操作。
+
+**示例**: nums = [0,1,0,3,12] → [1,3,12,0,0]
+
+## 代码 / Code
+```java
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int slow = 0;
+        for (int fast = 0; fast < nums.length; fast++) {
+            if (nums[fast] != 0) {
+                nums[slow] = nums[fast];
+                slow++;
+            }
+        }
+        for (int i = slow; i < nums.length; i++) {
+            nums[i] = 0;
+        }
+    }
+}
+```
 
 ## 核心思路：快慢指针
-- fast（快指针）：遍历每个元素，找非零
-- slow（慢指针）：记录下一个非零元素应该放的位置
+- fast：遍历每个元素，找非零
+- slow：记录下一个非零元素应该放的位置
 - fast 找到非零 → 搬到 slow 位置 → slow++
 - 遍历完后 slow 后面全部填 0
 
 ## 易错点
 - 不能排序！排序会打乱非零元素的相对顺序
-- 最后要手动填 0，只搬不填的话数组尾部会有残留旧数据
-- 原地操作 ≠ 不用额外变量，用几个 int 指针没问题
+- 最后要手动填 0，只搬不填会有残留
 
 ## 关键词触发
-看到 "原地" / "移动某类元素到末尾" / "保持相对顺序" → 快慢指针
+"原地" / "移动0到末尾" / "保持相对顺序" → 快慢指针
 
-2.Container With Most Water（盛最多水的容器）
-**难度**: Medium | **标签**: Array, Two Pointers, Greedy
+2. 11. Container With Most Water / 盛最多水的容器
+**难度**: Medium / 中等 | **标签**: Array, Two Pointers, Greedy / 数组, 双指针, 贪心
 
-## 题目一句话
-找两条线，和 x 轴围成的容器能装最多的水。
+## 原题 / Original Problem
+Given an integer array `height` of length `n`, find two lines that together with the x-axis form a container, such that the container contains the most water. Return the maximum amount of water.
+
+给定一个长度为 n 的整数数组 height，找出其中的两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。
+
+**示例**: height = [1,8,6,2,5,4,8,3,7] → 49
+
+## 代码 / Code
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int left = 0, right = height.length - 1, maxArea = 0;
+        while (left < right) {
+            int w = right - left;
+            int h = Math.min(height[left], height[right]);
+            maxArea = Math.max(maxArea, w * h);
+            if (height[left] < height[right]) left++;
+            else right--;
+        }
+        return maxArea;
+    }
+}
+```
 
 ## 面积公式
 面积 = (right - left) × min(height[left], height[right])
 
 ## 核心思路：左右指针
 - left=0, right=n-1，从最大宽度开始
-- 每次计算当前面积，更新最大值
-- **移动较矮的那根**：因为宽度必缩小，要赌高度变大，矮的那根必须被抛弃
-- 直到 left 和 right 相遇
+- **移动较矮的那根**：宽度必缩小，要赌高度变大，矮的必须被抛弃
 
 ## 易错点
 - 高度取 min，不是取哪根线
-- 移动的是较矮的那根，不是随便移
-- 不要和快慢指针搞混：这题是左右指针
+- 移动的是较矮的那根，和快慢指针不同（这题是 ←→ 两端指针）
 
 ## 关键词触发
-看到 "两条线" / "围成容器" / "最大面积" → 左右指针 + 移动较矮边
+"两条线" / "围成容器" / "最大面积" → 左右指针 + 移动较矮边
 
-3.Trapping Rain Water（接雨水）
-**难度**: Hard | **标签**: Array, Two Pointers, DP, Stack
+3. 42. Trapping Rain Water / 接雨水
+**难度**: Hard / 困难 | **标签**: Array, Two Pointers, DP, Stack / 数组, 双指针, 动态规划, 栈
 
-## 题目一句话
-柱状图里下雨后能积多少水。
+## 原题 / Original Problem
+Given `n` non-negative integers representing an elevation map where the width of each bar is `1`, compute how much water it can trap after raining.
+
+给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算下雨之后能接多少雨水。
+
+**示例**: height = [0,1,0,2,1,0,1,3,2,1,2,1] → 6
+
+## 代码 / Code
+```java
+class Solution {
+    public int trap(int[] height) {
+        int left = 0, right = height.length - 1;
+        int leftMax = 0, rightMax = 0, water = 0;
+        while (left < right) {
+            if (height[left] < height[right]) {
+                if (height[left] >= leftMax) leftMax = height[left];
+                else water += leftMax - height[left];
+                left++;
+            } else {
+                if (height[right] >= rightMax) rightMax = height[right];
+                else water += rightMax - height[right];
+                right--;
+            }
+        }
+        return water;
+    }
+}
+```
 
 ## 核心公式
 每个位置积水量 = min(左边最高, 右边最高) - 当前高度
 
+## 双指针逻辑
+维护 leftMax 和 rightMax，哪边矮处理哪边。当前高度 < 那侧的 max → 积水；否则更新 max。
 
-## 双指针核心逻辑
-- left=0, right=n-1，维护 leftMax 和 rightMax
-- height[left] < height[right] → 处理左边
-  - height[left] >= leftMax → 更新 leftMax
-  - 否则 water += leftMax - height[left]
-- 否则处理右边，同理
-- 移动较矮的那边（和 Container 一样的直觉）
+## 为什么只用一侧 max？
+当 height[left] < height[right] 时，right 那边至少有一个 ≥ height[right]，所以 leftMax ≤ rightMax。left 的水量完全由 leftMax 决定。
 
-## 为什么可以只用 leftMax？
-当 height[left] < height[right] 时，right 那边至少有一个 ≥ height[right]，
-所以 leftMax 一定 ≤ rightMax。left 的水量完全由 leftMax 决定。
+## 和 Container 的区别
+Container 求 max(宽×高)，这题求 sum(每列积水量)。
 
+## 关键词触发
+"接雨水" / "柱子存水" → 双指针 / DP 预处理 / 单调栈
+滑动窗口 / Sliding Window
 
-## 关键词触发："接雨水" / "柱子存水" → 双指针 / DP 预处理 / 单调栈
-3.滑动窗口
- 1.Longest Substring Without Repeating Characters
-**难度**: Medium | **标签**: Hash Table, String, Sliding Window
+1. 3. Longest Substring Without Repeating Characters / 无重复字符的最长子串
+**难度**: Medium / 中等 | **标签**: Hash Table, String, Sliding Window / 哈希表, 字符串, 滑动窗口
 
-## 题目一句话
-找最长的不含重复字符的连续子串。
+## 原题 / Original Problem
+Given a string s, find the length of the longest substring without repeating characters.
 
-## 核心思路：滑动窗口
-- right 扩张窗口，每次走一步
-- 遇到重复字符 → left 收缩窗口直到重复字符被踢出
-- 窗口始终无重复，记录过程中的最大长度
+给定一个字符串 s，请你找出其中不含有重复字符的最长子串的长度。
 
-## 两种实现
-### Set 版（直观）
-while (window.contains(c)) → 踢 s.charAt(left) → left++
-每次 left 只走一步，重复字符很远时效率低
+**示例**: s = "abcabcbb" → 3（"abc"）；s = "bbbbb" → 1（"b"）；s = "pwwkew" → 3（"wke"）
 
-### HashMap 版（优化）
-记录每个字符最后一次出现的位置
-left = Math.max(left, map.get(c) + 1)  // 直接跳到重复位置的下一个
-Math.max 防止 left 回退（关键！）
+## 代码 / Code
+```java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        Map<Character, Integer> map = new HashMap<>();
+        int left = 0, maxLen = 0;
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            if (map.containsKey(c)) {
+                left = Math.max(left, map.get(c) + 1);
+            }
+            map.put(c, right);
+            maxLen = Math.max(maxLen, right - left + 1);
+        }
+        return maxLen;
+    }
+}
+```
 
-## 易错点
-- "abba" 这种场景：left 只能往右走，不能用 map 的值直接赋值
+## 核心思路 / Core Idea
+right 扩张窗口，每次走一步。遇到重复字符时，left 跳到重复位置的下一个。用 HashMap 记录每个字符最后出现的位置。Math.max 防止 left 回退（关键！）。窗口始终无重复，记录过程中的最大长度。
+
+## 易错点 / Pitfalls
+- "abba" 场景：left 只能往右走，不能直接用 map 的值赋值，必须 Math.max(left, map.get(c) + 1)
 - 子串必须是连续的，子序列不行
 - 窗口长度 = right - left + 1
 
-## 关键词触发
-"最长子串" / "无重复" / "连续" → 滑动窗口 + HashSet/HashMap
+## 关键词触发 / Triggers
+"最长子串" / "无重复" / "连续" → 滑动窗口 + HashMap
 
-2. Find All Anagrams in a String
-**难度**: Medium | **标签**: Hash Table, String, Sliding Window
+2. 438. Find All Anagrams in a String / 找到字符串中所有字母异位词
+**难度**: Medium / 中等 | **标签**: Hash Table, String, Sliding Window / 哈希表, 字符串, 滑动窗口
 
-## 题目一句话
-在 s 中找到所有 p 的字母异位词子串，返回起始下标。
+## 原题 / Original Problem
+Given two strings s and p, return an array of all the start indices of p's anagrams in s.
 
-## 核心思路：定长滑动窗口
-- 窗口大小 = p.length()，锁定不变
-- 维护两个 int[26]：pCount（固定）和 windowCount（滑动更新）
-- 每次滑动：新字符进（count++），旧字符出（count--）
-- Arrays.equals 比较 → 相同就记录起始下标
+给定两个字符串 s 和 p，找到 s 中所有 p 的异位词的子串，返回起始索引。
 
-## 为什么不用每次重新统计？
-每次滑动只涉及 2 个字符变动（一个进一个出），
-用数组追踪，比较是 O(26)=O(1)，总复杂度 O(s)。
+**示例**: s = "cbaebabacd", p = "abc" → [0,6]；s = "abab", p = "ab" → [0,1,2]
+
+## 代码 / Code
+```java
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        List<Integer> result = new ArrayList<>();
+        if (s.length() < p.length()) return result;
+        int[] pCount = new int[26], windowCount = new int[26];
+        for (char c : p.toCharArray()) pCount[c - 'a']++;
+        for (int i = 0; i < p.length(); i++) windowCount[s.charAt(i) - 'a']++;
+        if (Arrays.equals(pCount, windowCount)) result.add(0);
+        for (int i = p.length(); i < s.length(); i++) {
+            windowCount[s.charAt(i) - 'a']++;
+            windowCount[s.charAt(i - p.length()) - 'a']--;
+            if (Arrays.equals(pCount, windowCount)) result.add(i - p.length() + 1);
+        }
+        return result;
+    }
+}
+```
+
+## 核心思路 / Core Idea
+定长滑动窗口：窗口大小 = p.length()，锁定不变。维护两个 int[26] 计数数组 —— pCount（固定）和 windowCount（滑动更新）。每次滑动只更新进出一个字符，Arrays.equals 比较两个数组是否相同。时间复杂度 O(n)。
+
+## 和 Group Anagrams 的联系
+都用 int[26] 计数判断异位词。Group Anagrams 用排序或计数拼成字符串当 HashMap key，这题直接用 Arrays.equals 比较两个计数数组。
 
 ## 起始下标公式
 i - p.length() + 1（i 是当前窗口右边界下标）
 
-## 易错点
+## 易错点 / Pitfalls
 - s.length() < p.length() 直接返回空列表
-- 初始化第一个窗口后别忘了检查
-- 起始下标算对：i - p.length() + 1
+- 初始化第一个窗口后必须检查一次（容易忘）
+- 起始下标要算对：i - p.length() + 1
 
-## 和 Group Anagrams 的联系
-都用 int[26] 计数判断异位词。
-Group Anagrams 用排序或计数拼成字符串当 HashMap key，
-这题直接用 Arrays.equals 比较两个计数数组。
+## 关键词触发 / Triggers
+"字母异位词子串" / "找所有起始索引" / "定长窗口" → int[26] 计数 + 滑动窗口
 
-每日刷题
-1.Find Greatest Common Divisor of Array
-**难度**: Easy | **标签**: Array, Math
+每日刷题 / Daily Practice
 
-## 题目一句话
-找数组最大数和最小数的最大公约数（GCD）。
+1. 1979. Find Greatest Common Divisor of Array / 找出数组的最大公约数
+**难度**: Easy / 简单 | **标签**: Array, Math / 数组, 数学
+
+## 原题 / Original Problem
+Given an integer array `nums`, return the greatest common divisor of the smallest number and largest number in `nums`.
+
+给你一个整数数组 nums，返回数组中最大数和最小数的最大公约数。
+
+**示例**: nums = [2,5,6,9,10] → 2；nums = [7,5,6,8,3] → 1
+
+## 代码 / Code
+```java
+class Solution {
+    public int findGCD(int[] nums) {
+        int min = nums[0], max = nums[0];
+        for (int num : nums) {
+            if (num < min) min = num;
+            if (num > max) max = num;
+        }
+        return gcd(max, min);
+    }
+    private int gcd(int a, int b) {
+        while (b != 0) {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+}
+```
 
 ## 两步走
 1. 遍历找 min 和 max
@@ -313,8 +525,9 @@ Group Anagrams 用排序或计数拼成字符串当 HashMap key，
 int gcd(int a, int b) {
     return b == 0 ? a : gcd(b, a % b);
 }
+```
 循环版（推荐，不怕栈溢出）：
-
+```java
 int gcd(int a, int b) {
     while (b != 0) {
         int temp = b;
@@ -323,11 +536,42 @@ int gcd(int a, int b) {
     }
     return a;
 }
-2.Remove Duplicate Letters / Smallest Subsequence
-**难度**: Medium | **标签**: Stack, Greedy, String, Monotonic Stack
+```
 
-## 题目一句话
-删掉重复字符，保留一个，使结果字典序最小，且保持原顺序。
+2. 316. Remove Duplicate Letters / 去除重复字母
+**难度**: Medium / 中等 | **标签**: Stack, Greedy, String, Monotonic Stack / 栈, 贪心, 字符串, 单调栈
+
+## 原题 / Original Problem
+Given a string `s`, remove duplicate letters so that every letter appears once and only once. You must make sure your result is the smallest in lexicographical order among all possible results.
+
+给你一个字符串 s，请你去除字符串中重复的字母，使得每个字母只出现一次。需保证返回结果的字典序最小。
+
+**示例**: s = "bcabc" → "abc"；s = "cbacdcbc" → "acdb"
+
+## 代码 / Code
+```java
+class Solution {
+    public String removeDuplicateLetters(String s) {
+        int[] lastIndex = new int[26];
+        for (int i = 0; i < s.length(); i++) lastIndex[s.charAt(i) - 'a'] = i;
+        boolean[] inStack = new boolean[26];
+        Deque<Character> stack = new ArrayDeque<>();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (inStack[c - 'a']) continue;
+            while (!stack.isEmpty() && stack.peek() > c && lastIndex[stack.peek() - 'a'] > i) {
+                inStack[stack.pop() - 'a'] = false;
+            }
+            stack.push(c);
+            inStack[c - 'a'] = true;
+        }
+        StringBuilder sb = new StringBuilder();
+        Iterator<Character> it = stack.descendingIterator();
+        while (it.hasNext()) sb.append(it.next());
+        return sb.toString();
+    }
+}
+```
 
 ## 核心思路：单调栈（贪心）
 遍历每个字符，维护一个字典序递增的栈：
@@ -357,12 +601,42 @@ for (char c : stack) { result.append(c); }
 // ✅ 正确：从栈底到栈顶
 Iterator<Character> it = stack.descendingIterator();
 while (it.hasNext()) { result.append(it.next()); }
+```
 
-3.Shift 2D Grid（二维网格迁移）
-**难度**: Easy | **标签**: Array, Matrix, Simulation
+3. 1260. Shift 2D Grid / 二维网格迁移
+**难度**: Easy / 简单 | **标签**: Array, Matrix, Simulation / 数组, 矩阵, 模拟
 
-## 题目一句话
-二维网格所有元素整体右移 k 步，右边界的元素折行到下一行开头，最后一个元素回到 [0][0]。
+## 原题 / Original Problem
+Given a 2D `grid` of size `m x n` and an integer `k`. You need to shift the grid `k` times. In one shift operation: Element at `grid[i][j]` moves to `grid[i][j+1]`. Element at `grid[i][n-1]` moves to `grid[i+1][0]`. Element at `grid[m-1][n-1]` moves to `grid[0][0]`. Return the 2D grid after `k` shifts.
+
+给你一个 m 行 n 列的二维网格 grid 和一个整数 k。你需要将 grid 迁移 k 次，返回最终网格。
+
+**示例**: grid = [[1,2,3],[4,5,6],[7,8,9]], k = 1 → [[9,1,2],[3,4,5],[6,7,8]]
+
+## 代码 / Code
+```java
+class Solution {
+    public List<List<Integer>> shiftGrid(int[][] grid, int k) {
+        int m = grid.length, n = grid[0].length, total = m * n;
+        k %= total;
+        int[][] newGrid = new int[m][n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                int idx = i * n + j;
+                int newIdx = (idx + k) % total;
+                newGrid[newIdx / n][newIdx % n] = grid[i][j];
+            }
+        }
+        List<List<Integer>> result = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            List<Integer> row = new ArrayList<>();
+            for (int j = 0; j < n; j++) row.add(newGrid[i][j]);
+            result.add(row);
+        }
+        return result;
+    }
+}
+```
 
 ## 核心思路：一维化 + 取模
 把二维网格展平成一维数组，每个元素右移 k 步，再折叠回二维。
@@ -386,11 +660,36 @@ k 可能非常大，模拟 k 次 O(k·m·n) 会超时。
 - k 要先对 total 取余
 - 返回类型是 List<List<Integer>>，需要手动转换
 
-4.Maximize Active Section with Trade I
-**难度**: Medium | **标签**: String, Greedy
+4. 3499. Maximize Active Section with Trade I
+**难度**: Medium / 中等 | **标签**: String, Greedy / 字符串, 贪心
 
-## 题目一句话
-最多执行一次操作：选一个被 0 包围的连续 1 区块，先变全 0，然后它两边连成片的 0 全变 1。求最大 1 的个数。
+## 原题 / Original Problem
+You are given a binary string `s`. You can perform at most one operation to maximize the number of active sections. Choose a contiguous block of '1's surrounded by '0's → turn it to '0's → then choose a contiguous block of '0's surrounded by '1's → turn it to '1's. Return the maximum possible number of active sections.
+
+给你一个二进制字符串 s，最多执行一次操作：选一个被 0 包围的连续 1 区块变全 0，然后将一个被 1 包围的连续 0 区块变全 1。求最大活跃区段数。
+
+## 代码 / Code
+```java
+class Solution {
+    public int maxActiveSectionsAfterTrade(String s) {
+        int ones = 0, prevZeros = -1, curZeros = 0, maxGain = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '0') {
+                curZeros++;
+            } else {
+                ones++;
+                if (curZeros > 0) {
+                    if (prevZeros != -1) maxGain = Math.max(maxGain, prevZeros + curZeros);
+                    prevZeros = curZeros;
+                    curZeros = 0;
+                }
+            }
+        }
+        if (curZeros > 0 && prevZeros != -1) maxGain = Math.max(maxGain, prevZeros + curZeros);
+        return ones + maxGain;
+    }
+}
+```
 
 ## 操作本质（人话）
 在 s 两端包上 '1' 得到 t = '1' + s + '1'：
@@ -432,8 +731,59 @@ previousZeros 保持不变，本质上把连续的 1 视为一个整体区块。
 - 循环结束后要额外处理末尾的 0 段
 - 只做一次操作，取最大收益，不是累加所有
 
-Maximize Active Section with Trade II
-**难度**: Hard | **标签**: String, Binary Search, Sparse Table, Prefix Sum
+5. 3500. Maximize Active Section with Trade II
+**难度**: Hard / 困难 | **标签**: String, Binary Search, Sparse Table, Prefix Sum / 字符串, 二分, 稀疏表, 前缀和
+
+## 原题 / Original Problem
+Same as 3499, plus a 2D array `queries` where `queries[i] = [li, ri]` represents a substring. For each query, determine the max possible active sections after performing the operation on only that substring.
+
+同上一题，外加 queries 数组表示多个查询，每个查询对 s[li..ri] 子串独立操作，返回整个 s 的活跃区段数。
+
+## 代码 / Code
+```java
+class Solution {
+    private int[][] sparseTable; private int[] log2;
+    public List<Integer> maxActiveSectionsAfterTrade(String s, int[][] queries) {
+        int n = s.length(), totalOnes = 0;
+        int[] zeroRunId = new int[n]; Arrays.fill(zeroRunId, -1);
+        int[] start = new int[n], end = new int[n], length = new int[n];
+        int runCount = 0;
+        for (int i = 0; i < n; ) {
+            if (s.charAt(i) == '1') { totalOnes++; i++; continue; }
+            int left = i;
+            while (i < n && s.charAt(i) == '0') { zeroRunId[i] = runCount; i++; }
+            start[runCount] = left; end[runCount] = i - 1; length[runCount] = i - left;
+            runCount++;
+        }
+        int[] nextZeroRun = new int[n+1]; nextZeroRun[n] = -1;
+        for (int i = n-1; i >= 0; i--) nextZeroRun[i] = zeroRunId[i] != -1 ? zeroRunId[i] : nextZeroRun[i+1];
+        int[] prevZeroRun = new int[n]; int prev = -1;
+        for (int i = 0; i < n; i++) { if (zeroRunId[i] != -1) prev = zeroRunId[i]; prevZeroRun[i] = prev; }
+        int pairCount = Math.max(0, runCount-1);
+        int[] pairGain = new int[pairCount];
+        for (int i = 0; i < pairCount; i++) pairGain[i] = length[i] + length[i+1];
+        buildSparseTable(pairGain);
+        List<Integer> answer = new ArrayList<>();
+        for (int[] q : queries) {
+            int l = q[0], r = q[1];
+            int firstRun = nextZeroRun[l], lastRun = prevZeroRun[r];
+            if (firstRun == -1 || lastRun == -1 || firstRun >= lastRun) { answer.add(totalOnes); continue; }
+            int maxGain = 0;
+            maxGain = Math.max(maxGain, clippedLength(firstRun,l,r,start,end)+clippedLength(firstRun+1,l,r,start,end));
+            maxGain = Math.max(maxGain, clippedLength(lastRun-1,l,r,start,end)+clippedLength(lastRun,l,r,start,end));
+            int ml = firstRun+1, mr = lastRun-2;
+            if (ml <= mr) maxGain = Math.max(maxGain, rangeMax(ml, mr));
+            answer.add(totalOnes + maxGain);
+        }
+        return answer;
+    }
+    private int clippedLength(int run, int ql, int qr, int[] st, int[] ed) {
+        return Math.max(0, Math.min(ed[run], qr) - Math.max(st[run], ql) + 1);
+    }
+    private void buildSparseTable(int[] v) { /* 同上，Sparse Table 预处理见完整版 */ }
+    private int rangeMax(int l, int r) { /* 同上，Sparse Table 预处理见完整版 */ }
+}
+```
 
 ## 和上一题的区别
 上一题：整个 s 做一次操作。
@@ -476,3 +826,56 @@ pairGain[i] = length[i] + length[i+1]
 - 0-段 < 2 个时无法操作，收益 = 0
 - clippedLength 要考虑 run 越界情况
 - 左右边界可能是同一个 pair（firstRun+1 == lastRun），中间部分为空
+
+6. 3513. XOR of Triplets / 异或三元组 ❌ 做错过
+**难度**: Medium | **标签**: Math, Bit Manipulation / 数学, 位运算
+
+## 原题 / Original Problem
+Given an integer array `nums` of length `n`, where `nums` is a permutation of the integers in the range `[1, n]`.
+
+An XOR triplet is defined as the XOR of three elements `nums[i] XOR nums[j] XOR nums[k]`, where `i <= j <= k`.
+
+Return the number of **distinct** XOR triplet values from all possible triplets `(i, j, k)`.
+
+给你一个长度为 n 的整数数组 nums，其中 nums 是范围 [1, n] 内所有数的排列。返回所有可能三元组 (i, j, k) 中不同的 XOR 值的数量，其中 i <= j <= k。
+
+**示例**: nums = [3,1,2] → 输出 4（XOR 值 {0, 1, 2, 3}）
+
+## 代码 / Code
+```java
+class Solution {
+    public int xorTriplets(int[] nums) {
+        int n = nums.length;
+        if (n <= 2) return n;  // n=1 → 1, n=2 → 2（下标不够选三个不同的）
+
+        // 找大于 n 的最小 2 的幂：从 1 开始不断翻倍直到超过 n
+        int ans = 1;
+        while (ans <= n) {
+            ans <<= 1;
+        }
+        return ans;
+    }
+}
+```
+
+## 核心思路 / Core Idea
+- n ≤ 2：下标不够选三个不同的 i<j<k，答案就是 n
+- n ≥ 3：答案 = 大于 n 的最小 2 的幂（即 2^⌈log₂n⌉）
+  - 上限：所有数 < 2^bits，XOR 结果 < 2^bits
+  - 下限：n≥3 时有足够下标组合产生 [0, 2^bits-1] 的所有值
+
+| n | ans | 原因 |
+|---|:---:|---|
+| 1 | 1 | 只有一个下标 |
+| 2 | 2 | 只有两个下标 |
+| 3~4 | 4 | 2²=4 |
+| 5~8 | 8 | 2³=8 |
+| 9~16 | 16 | 2⁴=16 |
+
+## 易错点 / Pitfalls
+- 不是遍历所有三元组！O(n³) 必超时，要找数学规律
+- n=2 时答案也是 2（不能选三个不同下标，和 n=1 同理但结果不同）
+- `ans <<= 1` 左移等价于 ×2，一直翻倍直到 > n
+
+## 关键词触发 / Triggers
+"排列" / "XOR 不同值" / "i≤j≤k 三元组" → 数学规律，答案为 2 的幂
