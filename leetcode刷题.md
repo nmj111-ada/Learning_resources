@@ -1027,3 +1027,68 @@ class Solution {
 
 ## 关键词触发 / Triggers
 "排列" / "XOR 不同值" / "i≤j≤k 三元组" → 数学规律，答案为 2 的幂
+
+7. 3513-II. XOR of Triplets II / 异或三元组 II ❌ 做错过
+**难度**: Medium / 中等 | **标签**: Math, Bit Manipulation, Enumeration / 数学, 位运算, 枚举
+
+## 原题 / Original Problem
+Given an integer array `nums`, return the number of distinct XOR triplet values `nums[i] ^ nums[j] ^ nums[k]` where `i <= j <= k`.
+
+给你一个整数数组 nums，返回所有 i≤j≤k 的三元组 XOR 值中不同值的数量。nums 是任意数组，n ≤ 1500。
+
+**与 3513-I 的区别**: I 是 [1,n] 排列用数学规律；II 是任意数组用枚举。
+
+**示例**: nums = [1,3] → 2；nums = [6,7,8,9] → 4
+
+## 代码 / Code
+```java
+class Solution {
+    public int xorTriplets(int[] nums) {
+        int n = nums.length;
+        boolean[] pair = new boolean[2048];    // 下标 = XOR 值
+        // ① 枚举所有 i≤j，打出所有两两 XOR
+        for (int i = 0; i < n; i++)
+            for (int j = i; j < n; j++)
+                pair[nums[i] ^ nums[j]] = true;
+        // ② 每个两两 XOR 再 XOR 每个 nums[k]
+        boolean[] triple = new boolean[2048];
+        for (int k = 0; k < n; k++)
+            for (int v = 0; v < 2048; v++)
+                if (pair[v]) triple[v ^ nums[k]] = true;
+        // ③ 数多少种
+        int count = 0;
+        for (boolean b : triple) if (b) count++;
+        return count;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+nums = [1, 3]
+
+① 两两 XOR（i ≤ j）：
+  (0,0): 1^1 = 0  →  pair[0] = true
+  (0,1): 1^3 = 2  →  pair[2] = true
+  (1,1): 3^3 = 0  →  pair[0] = true
+  pair = {0, 2} 两个 true
+
+② 每个 pair 值 × 每个 nums[k]：
+  k=0 (nums[0]=1) → 所有 pair 值 XOR 1
+    pair[0]=true: 0^1 = 1 → triple[1] = true
+    pair[2]=true: 2^1 = 3 → triple[3] = true
+  k=1 (nums[1]=3) → 所有 pair 值 XOR 3
+    pair[0]=true: 0^3 = 3 → triple[3] = true
+    pair[2]=true: 2^3 = 1 → triple[1] = true
+  triple = {1, 3} 两个 true
+
+③ count = 2 ✅
+
+## 为什么数组大小是 2048？
+nums[i] ≤ 1500，1500 二进制占 11 位。
+两个 11 位数 XOR 结果也 ≤ 2047。下一个 2 的幂 = 2048 = 2¹¹。
+用布尔数组当下标，比 HashSet 快。
+
+## 易错点 / Pitfalls
+- 别和 3513-I 搞混：I 是排列用数学，II 是任意数组用枚举
+- pair 和 triple 用 boolean[2048] 不用 HashSet（值域小，数组比 HashMap O(1) 常数更小）
+- i≤j≤k 的限制不影响结果（XOR 有交换律，任意三个可以排成有序的）
