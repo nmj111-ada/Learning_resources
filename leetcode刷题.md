@@ -410,6 +410,156 @@ class Solution {
 和 Two Sum 一样：找同类项 → HashMap
 
 
+链表 / Linked List
+
+1. 160. Intersection of Two Linked Lists / 相交链表
+**难度**: Easy / 简单 | **标签**: Hash Table, Linked List, Two Pointers / 哈希表, 链表, 双指针
+
+## 原题 / Original Problem
+Given the heads of two singly linked-lists `headA` and `headB`, return the node at which the two lists intersect. If the two linked lists have no intersection, return null.
+
+给你两个单链表的头节点 headA 和 headB，找出并返回两个单链表相交的起始节点。如果不存在相交节点，返回 null。
+
+**示例**: A=[4,1,8,4,5], B=[5,6,1,8,4,5] → 相交于 8
+
+## 代码 / Code
+```java
+public class Solution {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        ListNode pA = headA, pB = headB;
+        while (pA != pB) {
+            pA = (pA == null) ? headB : pA.next;
+            pB = (pB == null) ? headA : pB.next;
+        }
+        return pA;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+A=[4,1,8,4,5], B=[5,6,1,8,4,5]，交点=8
+
+pA: 4→1→8→4→5→null→5(B头)→6→1→8 ← 相遇！
+pB: 5→6→1→8→4→5→null→4(A头)→1→8 ← 相遇！
+
+pA 走了 A+B 前半段，pB 走了 B+A 前半段，路程相同，必在交点相遇。
+不相交？两个同时走到 null，pA==pB，返回 null。
+
+## 易错点 / Pitfalls
+- 比较的是节点引用（地址），不是 val
+- O(m+n) 时间，O(1) 空间 — 不需要 HashSet
+
+## 关键词触发 / Triggers
+"链表相交" / "找交点" → 双指针各走 A+B
+
+2. 206. Reverse Linked List / 反转链表
+**难度**: Easy / 简单 | **标签**: Linked List, Recursion / 链表, 递归
+
+## 原题 / Original Problem
+Given the `head` of a singly linked list, reverse the list, and return the reversed list.
+
+给你单链表的头节点 head，请你反转链表，并返回反转后的链表。
+
+**示例**: [1,2,3,4,5] → [5,4,3,2,1]
+
+## 代码 / Code（迭代）
+```java
+class Solution {
+    public ListNode reverseList(ListNode head) {
+        ListNode prev = null, cur = head;
+        while (cur != null) {
+            ListNode next = cur.next; // 备份
+            cur.next = prev;          // 掰箭头
+            prev = cur;               // prev前进
+            cur = next;               // cur前进
+        }
+        return prev;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+初始: prev=null, cur=1
+      null    1→2→3→4→5→null
+
+cur=1: next=2, 1→null, prev=1, cur=2  →  null←1  2→3→4→5
+cur=2: next=3, 2→1,    prev=2, cur=3  →  null←1←2  3→4→5
+cur=3: next=4, 3→2,    prev=3, cur=4  →  null←1←2←3  4→5
+cur=4: next=5, 4→3,    prev=4, cur=5
+cur=5: next=null, 5→4, prev=5, cur=null
+cur=null → 结束，prev=5 是新头 ✅
+```
+
+## 关键词触发 / Triggers
+"反转链表" → 迭代(N-1个箭头逐根掰) / 递归(从后往前翻)
+
+3. 234. Palindrome Linked List / 回文链表
+**难度**: Easy / 简单 | **标签**: Linked List, Two Pointers, Stack / 链表, 双指针, 栈
+
+## 原题 / Original Problem
+Given the `head` of a singly linked list, return `true` if it is a palindrome or `false` otherwise.
+
+给你一个单链表的头节点 head，判断该链表是否为回文链表。O(n) 时间 + O(1) 空间。
+
+**示例**: [1,2,2,1] → true；[1,2] → false
+
+## 代码 / Code
+```java
+class Solution {
+    public boolean isPalindrome(ListNode head) {
+        // ① 快慢找中点
+        ListNode slow = head, fast = head;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        // ② 反转后半
+        ListNode prev = null;
+        while (slow != null) {
+            ListNode next = slow.next;
+            slow.next = prev;
+            prev = slow;
+            slow = next;
+        }
+        // ③ 前后对比
+        ListNode left = head, right = prev;
+        while (right != null) {
+            if (left.val != right.val) return false;
+            left = left.next;
+            right = right.next;
+        }
+        return true;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+head = 1→2→2→1
+
+① slow=1,fast=1 → slow=2,fast=2 → slow=2(第二个2),fast=null
+   前半: 1→2  后半: 2→1
+
+② 反转后半: 2→1 改成 1→2
+   整条: 1→2→2←1（中间断开）
+
+③ left=1, right=1 → 1==1 ✓
+   left=2, right=2 → 2==2 ✓
+   right=null → 比完 → true ✅
+```
+
+## 为什么单链表"从后往前"做不到？
+单链表只有 next 箭头没有 prev。把后半段反转后，箭头方向变了，就能从头尾同时往中间走。
+
+## 易错点 / Pitfalls
+- 快慢指针找中点，slow 停在的是后半段的头
+- 反转的是后半段引用，不新建节点
+
+## 关键词触发 / Triggers
+"回文链表" / "O(1) 空间" → 快慢找中 + 反转后半 + 双指针对比
+
+
 双指针问题 / Two Pointers
 
 1. 283. Move Zeroes / 移动零
