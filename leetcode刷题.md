@@ -559,6 +559,156 @@ head = 1→2→2→1
 ## 关键词触发 / Triggers
 "回文链表" / "O(1) 空间" → 快慢找中 + 反转后半 + 双指针对比
 
+4. 141. Linked List Cycle / 环形链表
+**难度**: Easy / 简单 | **标签**: Hash Table, Linked List, Two Pointers / 哈希表, 链表, 双指针
+
+## 原题 / Original Problem
+Given `head`, the head of a linked list, determine if the linked list has a cycle in it. Return `true` if there is a cycle, otherwise `false`.
+
+给你一个链表的头节点 head，判断链表中是否有环。
+
+**示例**: [3,2,0,-4] 尾连到 2 → true；[1] → false
+
+## 代码 / Code
+```java
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode slow = head, fast = head;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast) return true;
+        }
+        return false;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+[3,2,0,-4] 尾连到 2:
+slow 走1步 fast 走2步
+初始: s=3 f=3 → s=2 f=0 → s=0 f=2 → s=-4 f=-4 → 相遇！✅
+
+[1,2,3]:
+s=1 f=1 → s=2 f=3 → s=3 f=null → fast到头，没环 ❌
+```
+
+## 为什么 `fast.next != null`？
+fast 走两步：`fast.next.next`。如果 `fast.next` 是 null，那 `null.next` 就 💥。
+
+## 关键词触发 / Triggers
+"链表有环" / "判断环" → 快慢指针（龟兔赛跑）
+
+5. 142. Linked List Cycle II / 环形链表 II
+**难度**: Medium / 中等 | **标签**: Hash Table, Linked List, Two Pointers / 哈希表, 链表, 双指针
+
+## 原题 / Original Problem
+Given the `head` of a linked list, return the node where the cycle begins. If there is no cycle, return `null`.
+
+给定一个链表的头节点 head，返回链表开始入环的第一个节点。如果链表无环，则返回 null。
+
+**示例**: [3,2,0,-4] 尾连到 2 → 返回节点 2
+
+## 代码 / Code
+```java
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        ListNode slow = head, fast = head;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast) {
+                slow = head;
+                while (slow != fast) {
+                    slow = slow.next;
+                    fast = fast.next;
+                }
+                return slow;  // 入口
+            }
+        }
+        return null;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+[3,2,0,-4] 尾连到 2，入口=2:
+
+① 快慢找相遇: s=2 f=2 → 相遇在节点 0
+② slow 回 head(3)，两个都走1步:
+   slow=3→2  fast=0→-4→2  → 再次相遇在 2！这就是入口 🎯
+```
+
+## 数学直觉
+head→入口 = a，入口→相遇点 = b，相遇点→入口 = c
+2(a+b) = a+2b+c → a = c
+所以 head 和 相遇点 同时走 1 步，刚好在入口碰头。
+
+## 关键词触发 / Triggers
+"找环入口" → 快慢相遇后 slow 回 head，两个都走 1 步直到相遇
+
+6. 21. Merge Two Sorted Lists / 合并两个有序链表
+**难度**: Easy / 简单 | **标签**: Linked List, Recursion / 链表, 递归
+
+## 原题 / Original Problem
+You are given the heads of two sorted linked lists `list1` and `list2`. Merge the two lists into one sorted list. Return the head of the merged linked list.
+
+将两个升序链表合并为一个新的升序链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。
+
+**示例**: list1=[1,2,4], list2=[1,3,4] → [1,1,2,3,4,4]
+
+## 代码 / Code
+```java
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        ListNode dummy = new ListNode(-1);
+        ListNode cur = dummy;
+        while (list1 != null && list2 != null) {
+            if (list1.val <= list2.val) {
+                cur.next = list1;
+                list1 = list1.next;
+            } else {
+                cur.next = list2;
+                list2 = list2.next;
+            }
+            cur = cur.next;
+        }
+        cur.next = (list1 != null) ? list1 : list2;
+        return dummy.next;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+l1=1→2→4, l2=1→3→4
+
+dummy → ...
+
+1≤1 → 接l1的1 → l1移到2, cur移到1 → [1]
+2>1 → 接l2的1 → l2移到3, cur移到1 → [1,1]
+2≤3 → 接l1的2 → l1移到4 → [1,1,2]
+4>3 → 接l2的3 → l2移到4 → [1,1,2,3]
+4≤4 → 接l1的4 → l1=null → [1,1,2,3,4]
+l1=null → cur.next=l2(剩下的4) → [1,1,2,3,4,4]
+
+return dummy.next → 1→1→2→3→4→4 ✅
+```
+
+## dummy 是干嘛的？
+不用 dummy：第一个节点要特殊处理"谁当 head"。
+用 dummy：dummy 站桩当假头，cur 只管往后接。最后 return dummy.next 跳过假头。
+
+## 易错点 / Pitfalls
+- 比的是 `.val` 不是节点引用
+- cur 每次接完要 `cur = cur.next` 往前走
+- 最后把没走完的链表剩下的全部接上
+
+## 关键词触发 / Triggers
+"合并有序链表" → dummy + 比大小逐个接
+
 
 双指针问题 / Two Pointers
 
@@ -1242,3 +1392,52 @@ nums[i] ≤ 1500，1500 二进制占 11 位。
 - 别和 3513-I 搞混：I 是排列用数学，II 是任意数组用枚举
 - pair 和 triple 用 boolean[2048] 不用 HashSet（值域小，数组比 HashMap O(1) 常数更小）
 - i≤j≤k 的限制不影响结果（XOR 有交换律，任意三个可以排成有序的）
+
+8. 628. Maximum Product of Two Digits / 任意两位数字的最大乘积 ❌ 做错过
+**难度**: Easy / 简单 | **标签**: Math, String / 数学, 字符串
+
+## 原题 / Original Problem
+Given a positive integer `n`, return the maximum product of any two digits in `n`. A digit may be used multiple times if it appears multiple times.
+
+给定一个正整数 n，返回任意两位数字相乘所得的最大乘积。如果某个数字出现多次，可以多次使用。
+
+**示例**: n=124 → 4×2=8；n=22 → 2×2=4；n=31 → 3×1=3
+
+## 代码 / Code
+```java
+class Solution {
+    public int maxProduct(int n) {
+        String s = Integer.toString(n);
+        int max1 = 0, max2 = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int digit = s.charAt(i) - '0';  // '4' → 4
+            if (digit > max1) {
+                max2 = max1;   // 老大哥变老二
+                max1 = digit;  // 新大哥上位
+            } else if (digit > max2) {
+                max2 = digit;
+            }
+        }
+        return max1 * max2;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+n = 124 → s = "124"
+
+i=0: digit=1, 1>max1(0) → max2=0, max1=1  →  max1=1, max2=0
+i=1: digit=2, 2>max1(1) → max2=1, max1=2  →  max1=2, max2=1
+i=2: digit=4, 4>max1(2) → max2=2, max1=4  →  max1=4, max2=2
+
+return 4×2 = 8 ✅
+```
+
+## 易错点 / Pitfalls
+- int 没有 `.length`！必须先 `Integer.toString(n)` 转字符串
+- max1、max2 要在 for 外面声明，不然循环结束就没了
+- `s.charAt(i) - '0'` 把字符转成数字（'4' 的 ASCII 减 '0' 的 ASCII = 4）
+
+## 关键词触发 / Triggers
+"最大乘积" / "找两个最大数字" → 一次遍历跟踪 max1 和 max2
