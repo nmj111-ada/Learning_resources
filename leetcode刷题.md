@@ -1441,3 +1441,48 @@ return 4×2 = 8 ✅
 
 ## 关键词触发 / Triggers
 "最大乘积" / "找两个最大数字" → 一次遍历跟踪 max1 和 max2
+
+9. 628. Maximum Product of Three Numbers / 三个数的最大乘积
+**难度**: Easy / 简单 | **标签**: Array, Math, Sorting / 数组, 数学, 排序
+
+## 原题 / Original Problem
+Given an integer array `nums`, find three numbers whose product is maximum and return the maximum product.
+
+给你一个整型数组 nums，在数组中找出由三个数组成的最大乘积，并输出这个乘积。
+
+**示例**: [1,2,3] → 6；[1,2,3,4] → 24；[-1,-2,-3] → -6
+
+## 代码 / Code
+```java
+class Solution {
+    public int maximumProduct(int[] nums) {
+        Arrays.sort(nums);
+        int n = nums.length;
+        int a = nums[n-1] * nums[n-2] * nums[n-3]; // 最大三个
+        int b = nums[0] * nums[1] * nums[n-1];      // 最小两个×最大（负负得正）
+        return Math.max(a, b);
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+例1: nums = [-10, -5, 1, 2, 3]
+排序: [-10, -5, 1, 2, 3]
+
+候选1(最大三个): 3×2×1 = 6
+候选2(最小两个×最大): -10×-5×3 = 150  ← 两个负数相乘变正数，炸了！
+
+max(6, 150) = 150 ✅
+
+例2: nums = [-5, -4, -3, -2]  全负数
+候选1: -2×-3×-4 = -24
+候选2: -5×-4×-2 = -40
+max(-24, -40) = -24 ✅  越接近0越大
+```
+
+## 核心陷阱
+两个负数相乘变正数 → 最小两个负数 × 最大正数，可能秒杀最大的三个正数。
+
+## 关键词触发 / Triggers
+"三个数最大乘积" / "最大乘积" → 排序 + 比较两种候选
