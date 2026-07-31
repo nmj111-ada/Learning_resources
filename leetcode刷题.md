@@ -709,6 +709,114 @@ return dummy.next → 1→1→2→3→4→4 ✅
 ## 关键词触发 / Triggers
 "合并有序链表" → dummy + 比大小逐个接
 
+7. 2. Add Two Numbers / 两数相加
+**难度**: Medium / 中等 | **标签**: Linked List, Math, Recursion / 链表, 数学, 递归
+
+## 原题 / Original Problem
+You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
+
+给你两个非空的链表，表示两个非负的整数。每位数字都是按照逆序的方式存储的。将两个数相加，以相同形式返回一个表示和的链表。
+
+**示例**: l1=[2,4,3], l2=[5,6,4] → [7,0,8]（342+465=807）
+
+## 代码 / Code
+```java
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode dummy = new ListNode(-1);
+        ListNode cur = dummy;
+        int carry = 0;
+        while (l1 != null || l2 != null || carry != 0) {
+            int sum = carry;
+            if (l1 != null) { sum += l1.val; l1 = l1.next; }
+            if (l2 != null) { sum += l2.val; l2 = l2.next; }
+            cur.next = new ListNode(sum % 10); // 个位
+            carry = sum / 10;                    // 进位
+            cur = cur.next;
+        }
+        return dummy.next;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+l1=[2,4,3], l2=[5,6,4]
+
+dummy → ...
+
+位1(个): 2+5=7, carry=0 → 存7       [7]
+位2(十): 4+6=10, carry=1 → 存0      [7,0]
+位3(百): 3+4+1=8, carry=0 → 存8     [7,0,8]
+都到头, carry=0 → return dummy.next → 7→0→8 ✅
+
+l1=[9,9,9,9,9,9,9], l2=[9,9,9,9]
+... 7轮后 carry=1 → 补一个节点存1 → [8,9,9,9,0,0,0,1]
+```
+
+## 为什么需要 dummy？
+cur 负责画线接节点，接完最后停在链表尾。如果没有 dummy 站桩，return cur 只拿到最后一个节点。dummy 始终在开头不动，return dummy.next 拿整条链。
+
+## 关键词触发 / Triggers
+"链表加法" / "逆序数字" → 模拟竖式加法 + dummy + carry
+
+8. 19. Remove Nth Node From End of List / 删除链表的倒数第 N 个结点
+**难度**: Medium / 中等 | **标签**: Linked List, Two Pointers / 链表, 双指针
+
+## 原题 / Original Problem
+Given the `head` of a linked list, remove the n-th node from the end of the list and return its head.
+
+给你一个链表，删除链表的倒数第 n 个结点，并且返回链表的头结点。
+
+**示例**: head=[1,2,3,4,5], n=2 → [1,2,3,5]；head=[1], n=1 → []
+
+## 方法一：计数法（两趟扫描）
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        int sz = 0;
+        ListNode cur = head;
+        while (cur != null) { sz++; cur = cur.next; } // 数总数
+        if (sz == n) return head.next;  // 删的是头
+        cur = head;
+        for (int i = 0; i < sz - n - 1; i++) cur = cur.next; // 走到删点前一个
+        cur.next = cur.next.next;  // 跳过
+        return head;
+    }
+}
+```
+
+过程: head=[1,2,3,4,5], n=2, sz=5
+sz-n-1=2步: cur 走到 ③
+cur.next = cur.next.next → ③→⑤，跳过④
+return head → ①→②→③→⑤ ✅
+
+## 方法二：双指针（一趟扫描）⭐ 进阶
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode fast = dummy, slow = dummy;
+        for (int i = 0; i <= n; i++) fast = fast.next; // fast 先走 n+1 步
+        while (fast != null) { fast = fast.next; slow = slow.next; }
+        slow.next = slow.next.next;
+        return dummy.next;
+    }
+}
+```
+
+过程: head=[1,2,3,4,5], n=2
+dummy→1→2→3→4→5
+fast 先走 3步: fast=3, slow=dummy
+一起走: fast=4,slow=1 → fast=5,slow=2 → fast=null,slow=3
+slow.next=slow.next.next → ③→⑤ ✅
+
+## 为什么 head 从头到尾没动但返回的是整个结果？
+head 始终指着节点①。cur 改的是链中间的 next 挂钩，head 通过 next 顺藤摸瓜能找到整条被修改后的链。
+
+## 关键词触发 / Triggers
+"删除倒数第N个" / "一趟扫描" → 计数法 或 快慢指针(fast先走n步)
+
 
 双指针问题 / Two Pointers
 
