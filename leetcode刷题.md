@@ -818,6 +818,85 @@ head 始终指着节点①。cur 改的是链中间的 next 挂钩，head 通过
 "删除倒数第N个" / "一趟扫描" → 计数法 或 快慢指针(fast先走n步)
 
 
+二叉树 / Binary Tree
+
+1. 94. Binary Tree Inorder Traversal / 二叉树的中序遍历
+**难度**: Easy / 简单 | **标签**: Stack, Tree, DFS / 栈, 树, 深度优先
+
+## 原题 / Original Problem
+Given the `root` of a binary tree, return the inorder traversal of its nodes' values.
+
+给定一个二叉树的根节点 root，返回它的中序遍历。
+
+**示例**: root=[1,null,2,3] → [1,3,2]
+
+## 三种遍历顺序
+```
+        2
+       / \
+      1   3
+
+前序(根左右): [2, 1, 3]  见谁记谁
+中序(左根右): [1, 2, 3]  从左往右扫
+后序(左右根): [1, 3, 2]  从下往上扫
+```
+
+## 代码 / Code（递归）
+```java
+class Solution {
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        dfs(root, result);
+        return result;
+    }
+    private void dfs(TreeNode node, List<Integer> result) {
+        if (node == null) return;
+        dfs(node.left, result);   // ① 左边
+        result.add(node.val);     // ② 自己
+        dfs(node.right, result);  // ③ 右边
+    }
+}
+```
+
+递归过程: root=[1,null,2,3]
+```
+dfs(1): 1.left=null(return) → 记1 → dfs(2)
+  dfs(2): 2.left=3 → dfs(3)
+    dfs(3): 3.left=null → 记3 → 3.right=null
+  记2 → 2.right=null
+结果: [1,3,2]
+```
+
+## 代码 / Code（迭代/栈）
+```java
+class Solution {
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode cur = root;
+        while (cur != null || !stack.isEmpty()) {
+            while (cur != null) {       // 一路向左压栈
+                stack.push(cur);
+                cur = cur.left;
+            }
+            cur = stack.pop();           // 回头处理
+            result.add(cur.val);
+            cur = cur.right;             // 去右边
+        }
+        return result;
+    }
+}
+```
+
+## 关键理解
+`root=[1,null,2,3]` 不是左根右的排列！
+是层层写：根1 → 第二层左null右2 → 第三层2的左孩子3
+树结构: 1→右→2→左→3。中序遍历: 1左边null→记1→右边2→2左边3→记3→记2=[1,3,2]
+
+## 关键词触发 / Triggers
+"中序遍历" / "二叉树遍历" → 递归(左根右三行) 或 栈迭代(一路向左压栈)
+
+
 双指针问题 / Two Pointers
 
 1. 283. Move Zeroes / 移动零
@@ -1594,3 +1673,61 @@ max(-24, -40) = -24 ✅  越接近0越大
 
 ## 关键词触发 / Triggers
 "三个数最大乘积" / "最大乘积" → 排序 + 比较两种候选
+
+10. 3014. Minimum Number of Pushes to Type Word I / 输入单词需要的最少按键次数 I
+**难度**: Easy / 简单 | **标签**: Math, String, Greedy, Counting / 数学, 字符串, 贪心, 计数
+
+## 原题 / Original Problem
+You are given a string `word` containing lowercase English letters. Telephone keypads have keys mapped to distinct collections of letters. You are allowed to remap the keys numbered 2 to 9 to distinct letters. Return the **minimum** number of pushes needed to type `word` after remapping the keys.
+
+给你一个由小写英文字母组成的字符串 word。可以将 2-9 号按键重新映射到字母集合。每个按键可映射任意数量字母，每个字母恰好映射到一个按键。返回输入 word 所需的最少按键次数。
+
+**示例**: "abcde" → 5（5个字母各占一个按键第一位，各按1次）
+"aabbccddeeffgghhiiiiii" → 24
+
+## 代码 / Code
+```java
+class Solution {
+    public int minimumPushes(String word) {
+        int[] freq = new int[26];
+        for (char c : word.toCharArray()) freq[c - 'a']++;
+        Arrays.sort(freq);  // 升序，最大值在最后
+        int total = 0;
+        for (int i = 0; i < 26; i++) {
+            int f = freq[25 - i];  // 从大到小取
+            if (f == 0) break;
+            total += f * (i / 8 + 1);  // 频次 × 按键层数
+        }
+        return total;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+word = "aabbccddeeffgghhiiiiii"
+
+① 统计: i:6, a:2, b:2, c:2, d:2, e:2, f:2, g:2, h:2
+② sort 升序: [0..0, 2,2,2,2,2,2,2,2, 6]  ← 3个0, 8个2, 1个6
+③ 从后往前取(降序): [6, 2, 2, 2, 2, 2, 2, 2, 2]
+
+   i=0: f=6,  i/8+1=1 → 6×1 = 6
+   i=1~8: f=2, i/8+1=1 → 2×1×8 = 16
+   i=9: f=2, i/8+1=2 → 2×2 = 4   ← 第9个字母在第2层，按2次
+
+总: 6+16+4 = 24 ✅
+```
+
+## 核心思路
+8 个按键，每个按键可以有第1位、第2位、第3位...
+- 频次最高的 8 个字母 → 放第1位（按1次）
+- 次高 8 个 → 放第2位（按2次）
+- 以此类推
+`i / 8 + 1` 就是当前字母在第几层（点几下）
+
+## 易错点 / Pitfalls
+- Arrays.sort 是升序，最大值在末尾 → `freq[25-i]` 从后往前取才算降序
+- 用 `int[26]` 而不用 HashMap（26个字母固定，数组更快）
+
+## 关键词触发 / Triggers
+"最少按键" / "电话键盘" / "重新映射" → 统计频次 + 排序 + 层数分配
