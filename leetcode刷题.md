@@ -896,6 +896,57 @@ class Solution {
 ## 关键词触发 / Triggers
 "中序遍历" / "二叉树遍历" → 递归(左根右三行) 或 栈迭代(一路向左压栈)
 
+2. 104. Maximum Depth of Binary Tree / 二叉树的最大深度
+**难度**: Easy / 简单 | **标签**: Tree, DFS, BFS / 树, 深度优先, 广度优先
+
+## 原题 / Original Problem
+Given the `root` of a binary tree, return its maximum depth. The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.
+
+给定一个二叉树 root，返回其最大深度。最大深度是指从根节点到最远叶子节点的最长路径上的节点数。
+
+**示例**: [3,9,20,null,null,15,7] → 3；[1,null,2] → 2
+
+## 代码 / Code
+```java
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root == null) return 0;
+        int left = maxDepth(root.left);
+        int right = maxDepth(root.right);
+        return Math.max(left, right) + 1;
+    }
+}
+```
+
+## 递归过程 / Walkthrough
+```
+[3,9,20,null,null,15,7]
+        3
+       / \
+      9  20
+         / \
+        15  7
+
+maxDepth(3): left=9深度, right=20深度
+  maxDepth(9): left=0, right=0 → return 1
+  maxDepth(20): left=15深度, right=7深度
+    maxDepth(15): → 1
+    maxDepth(7): → 1
+    right=1, left=1 → return 2
+  left=1, right=2 → return max(1,2)+1 = 3 ✅
+```
+
+## 核心公式
+树深度 = 1（自己） + 左右子树中较深的那个
+
+## 易错点 / Pitfalls
+- root 为 null 时深度是 0
+- 叶子节点：左右都 null，return 0+0+1=1
+- 别用 while 循环 — 树有分叉，while 只能走一条路
+
+## 关键词触发 / Triggers
+"二叉树深度" / "最大深度" → 递归 max(left, right) + 1
+
 
 双指针问题 / Two Pointers
 
@@ -1731,3 +1782,79 @@ word = "aabbccddeeffgghhiiiiii"
 
 ## 关键词触发 / Triggers
 "最少按键" / "电话键盘" / "重新映射" → 统计频次 + 排序 + 层数分配
+
+11. 486. Predict the Winner / 预测赢家
+**难度**: Medium / 中等 | **标签**: Array, Math, DP, Game Theory / 数组, 数学, 动态规划, 博弈
+
+## 原题 / Original Problem
+You are given an integer array `nums`. Two players are playing a game with this array: player 1 and player 2. Players take turns, where each player takes a number from either end of the array. The game ends when there are no elements remaining. Return `true` if Player 1 can win. If the scores are equal, Player 1 is still the winner.
+
+给你一个整数数组 nums。玩家 1 和玩家 2 轮流从数组任意一端取数字，加到自己的分数上。如果玩家 1 能成为赢家（平局也算），返回 true。
+
+**示例**: [1,5,2] → false；[1,5,233,7] → true
+
+## 核心视角
+不关心"玩家1得分"和"玩家2得分"两个数。
+只关心：**当前先手能比后手多拿多少分（净胜分）**。
+净胜分 ≥ 0 → 玩家 1 赢。
+
+## 解法一：递归 / Recursion
+```java
+class Solution {
+    private int[] nums;
+    public boolean predictTheWinner(int[] nums) {
+        this.nums = nums;
+        return dfs(0, nums.length - 1) >= 0;
+    }
+    int dfs(int left, int right) {
+        if (left == right) return nums[left];
+        int pickL = nums[left] - dfs(left + 1, right);
+        int pickR = nums[right] - dfs(left, right - 1);
+        return Math.max(pickL, pickR);
+    }
+}
+```
+
+过程: nums=[1,5,2]
+```
+dfs(0,2): 先手在 [1,5,2]
+  选左: 1 - dfs(1,2)
+    dfs(1,2): 对方在 [5,2]
+      选5: 5 - dfs(2,2)=5-2=3
+      选2: 2 - dfs(1,1)=2-5=-3
+      → max=3, 对方净胜3
+    pickL = 1-3 = -2
+  选右: 2 - dfs(0,1) → dfs(0,1) 对方净胜4 → pickR = 2-4 = -2
+  dfs(0,2) = -2 < 0 → false
+```
+
+## 解法二：DP / 动态规划 O(n²)
+```java
+class Solution {
+    public boolean predictTheWinner(int[] nums) {
+        int n = nums.length;
+        int[][] dp = new int[n][n];
+        // 按区间长度从小到大填表
+        for (int len = 1; len <= n; len++) {
+            for (int i = 0; i + len - 1 < n; i++) {
+                int j = i + len - 1;
+                if (i == j) dp[i][j] = nums[i];
+                else dp[i][j] = Math.max(
+                    nums[i] - dp[i+1][j],
+                    nums[j] - dp[i][j-1]
+                );
+            }
+        }
+        return dp[0][n-1] >= 0;
+    }
+}
+```
+dp[i][j] = 子数组 nums[i..j] 中先手的净胜分。必须按区间长度从小到大填，因为 dp[i][j] 依赖 dp[i+1][j] 和 dp[i][j-1]（都比 [i,j] 短）。
+
+## 易错点 / Pitfalls
+- 平局也算赢：`>= 0` 不是 `> 0`
+- DP 必须按区间长度从小到大填，`i` 和 `j` 的双层循环顺序不能随便写
+- 递归版：`private` 成员变量接收参数 → `java` 方法内不能嵌套方法
+
+## 关键词触发 / Triggers
+"轮流取两端" / "预测赢家" / "博弈" → dfs 净胜分 或 DP 区间填表
