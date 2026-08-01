@@ -1858,3 +1858,72 @@ dp[i][j] = 子数组 nums[i..j] 中先手的净胜分。必须按区间长度从
 
 ## 关键词触发 / Triggers
 "轮流取两端" / "预测赢家" / "博弈" → dfs 净胜分 或 DP 区间填表
+
+12. 200. Number of Islands / 岛屿数量
+**难度**: Medium / 中等 | **标签**: Array, DFS, BFS, Matrix / 数组, 深度优先, 广度优先, 矩阵
+
+## 原题 / Original Problem
+Given an m x n 2D binary grid `grid` which represents a map of `'1'`s (land) and `'0'`s (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically.
+
+给你一个由 '1'（陆地）和 '0'（水）组成的二维网格，计算网格中岛屿的数量。岛屿总是被水包围，由水平/竖直相邻的陆地连接形成。
+
+**示例**: 见原题
+
+## 代码 / Code
+```java
+class Solution {
+    int m, n;
+    public int numIslands(char[][] grid) {
+        int count = 0;
+        m = grid.length;
+        n = grid[0].length;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == '1') {
+                    count++;
+                    dfs(grid, i, j);
+                }
+            }
+        }
+        return count;
+    }
+    void dfs(char[][] grid, int a, int b) {
+        if (a < 0 || a >= m || b < 0 || b >= n) return;
+        if (grid[a][b] == '0') return;
+        grid[a][b] = '0';  // 淹掉
+        dfs(grid, a+1, b);
+        dfs(grid, a-1, b);
+        dfs(grid, a, b+1);
+        dfs(grid, a, b-1);
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+[1,1,0]
+[1,0,0]
+[0,0,1]
+
+遍历 i=0,j=0: '1' → count=1, dfs淹掉相连的 (0,0)(0,1)(1,0) → 全变0
+遍历 i=0,j=1: '0' → 跳过
+遍历 i=0,j=2: '0' → 跳过
+遍历 i=1,j=0: '0' → 跳过
+...
+遍历 i=2,j=2: '1' → count=2, dfs淹掉
+
+count=2 ✅
+```
+
+## 核心思路：DFS 洪水填充
+找到一个 '1' → 计数 +1 → 递归把和它相连的所有 '1' 淹成 '0'（上下左右四个方向）
+遍历完整个网格，数到几个 '1' 就有几个岛。
+
+## 易错点 / Pitfalls
+- `=` 是赋值 `==` 是比较：`grid[i][j] == '1'` 不是 `=`
+- `'0'` 检查必须在置零之前，否则无限递归
+- `m` `n` 用类成员：`int m = ...` 会创建局部变量隐藏成员 → 删掉 `int`，写 `m = ...`
+- 边界检查放 dfs 第一行（出界直接 return）
+
+## 关键词触发 / Triggers
+"岛屿数量" / "连通区域" / "网格搜索" → DFS 洪水填充 或 BFS
