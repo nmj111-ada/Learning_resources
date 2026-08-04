@@ -947,6 +947,175 @@ maxDepth(3): left=9深度, right=20深度
 ## 关键词触发 / Triggers
 "二叉树深度" / "最大深度" → 递归 max(left, right) + 1
 
+3. 226. Invert Binary Tree / 翻转二叉树 ❌ 做错过
+**难度**: Easy / 简单 | **标签**: Tree, DFS, BFS / 树, 深度优先, 广度优先
+
+## 原题 / Original Problem
+Given the `root` of a binary tree, invert the tree, and return its root.
+
+给你一棵二叉树的根节点 root，翻转这棵二叉树，并返回其根节点。
+
+**示例**: [4,2,7,1,3,6,9] → [4,7,2,9,6,3,1]
+
+## 代码 / Code（递归）
+```java
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null) return null;
+        TreeNode temp = root.left;
+        root.left = invertTree(root.right);
+        root.right = invertTree(temp);
+        return root;
+    }
+}
+```
+
+递归过程: 每个节点交换左右孩子，然后递归翻转孩子自己。
+```
+      4                   4
+     / \                 / \
+    2   7     →         7   2
+   / \ / \             / \ / \
+  1  3 6  9           9  6 3  1
+```
+
+## 代码 / Code（迭代/栈）
+```java
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null) return null;
+        Stack<TreeNode> stack = new Stack<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            TreeNode node = stack.pop();
+            TreeNode temp = node.left;
+            node.left = node.right;
+            node.right = temp;
+            if (node.left != null) stack.push(node.left);
+            if (node.right != null) stack.push(node.right);
+        }
+        return root;
+    }
+}
+```
+
+## 我犯的错 / My Mistakes
+- 把 `root.left` 改了之后又用 `root.left` 去取原来的值：`root.left = invert(root.right); root.right = invert(root.left)` ← root.left 已经是右子树了！
+- 正确：用 temp 提前存好原来的 left，后面用 temp
+
+## 关键词触发 / Triggers
+"翻转二叉树" / "镜像" → 递归交换左右 + temp 暂存
+
+4. 101. Symmetric Tree / 对称二叉树
+**难度**: Easy / 简单 | **标签**: Tree, DFS, BFS / 树, 深度优先, 广度优先
+
+## 原题 / Original Problem
+Given the `root` of a binary tree, check whether it is a mirror of itself (i.e., symmetric around its center).
+
+给你一个二叉树的根节点 root，检查它是否轴对称。
+
+**示例**: [1,2,2,3,4,4,3] → true；[1,2,2,null,3,null,3] → false
+
+## 代码 / Code（递归）
+```java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        return isMirror(root.left, root.right);
+    }
+    boolean isMirror(TreeNode left, TreeNode right) {
+        if (left == null && right == null) return true;
+        if (left != null && right != null && left.val == right.val)
+            return isMirror(left.left, right.right) && isMirror(left.right, right.left);
+        else return false;
+    }
+}
+```
+
+关键: 不是"左右各自对称"，是**左子树和右子树互为镜像** — 左边.left vs 右边.right，左边.right vs 右边.left。
+
+## 代码 / Code（迭代/队列 BFS）
+```java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root.left); q.offer(root.right);
+        while (!q.isEmpty()) {
+            TreeNode t1 = q.poll(), t2 = q.poll();
+            if (t1 == null && t2 == null) continue;
+            if (t1 == null || t2 == null || t1.val != t2.val) return false;
+            q.offer(t1.left);  q.offer(t2.right); // 交叉配对！
+            q.offer(t1.right); q.offer(t2.left);
+        }
+        return true;
+    }
+}
+```
+
+## 我犯的错 / My Mistakes
+- 第一版写成判断"左右各自对称" → 完全错了
+- `left != right` 比较的是对象地址不是值 → 应该是 `left.val != right.val`
+- 递归调用写在 return 后面变成死代码
+
+## 关键词触发 / Triggers
+"对称二叉树" / "镜像" → 双参数递归(左.left vs 右.right) 或 队列交叉配对
+
+5. 543. Diameter of Binary Tree / 二叉树的直径 ❌ 做错过
+**难度**: Easy / 简单 | **标签**: Tree, DFS / 树, 深度优先
+
+## 原题 / Original Problem
+Given the `root` of a binary tree, return the length of the diameter of the tree. The diameter of a binary tree is the length of the longest path between any two nodes in a tree. This path may or may not pass through the root.
+
+给你一棵二叉树的根节点，返回该树的直径。直径是任意两个节点之间最长路径的长度（边数），可能不经过根。
+
+**示例**: [1,2,3,4,5] → 3（路径 [4,2,1,3] 或 [5,2,1,3]）
+
+## 代码 / Code
+```java
+class Solution {
+    int max = 0;
+    public int diameterOfBinaryTree(TreeNode root) {
+        depth(root);
+        return max;
+    }
+    int depth(TreeNode root) {
+        if (root == null) return 0;
+        int left = depth(root.left);
+        int right = depth(root.right);
+        max = Math.max(max, left + right);  // 当前节点当拐点的直径候选
+        return Math.max(left, right) + 1;   // 返回深度给上层
+    }
+}
+```
+
+过程: 每个节点算出左右深度，`left+right` 就是经过该节点的路径长度。全局 max 记最大值。
+
+## 核心区别
+| `max`（类成员） | `depth` 返回值 |
+|---|---|
+| 全局最大直径 | 当前节点深度 |
+| `max(max, left+right)` | `max(left,right)+1` |
+
+## 为什么 diameter 不一定经过根？
+```
+    1
+   /
+  2
+ / \
+4   5
+     \
+      6
+根1: left=3, right=0 → 直径候选=3
+节点2: left=2, right=2 → 直径候选=4 ← 更大！不经过根
+```
+
+## 我犯的错 / My Mistakes
+- depth 里写了 `return max + 1` → max 是全局直径不是深度，应该是 `Math.max(left,right)+1`
+- 忘了 `root==null` 终止条件导致死循环
+- 不知道用类成员变量来跨递归层级记录全局最大值
+
+## 关键词触发 / Triggers
+"二叉树直径" / "最长路径" → maxDepth变体 + 全局变量记 left+right
+
 
 图论 / Graph
 
@@ -1920,3 +2089,73 @@ dp[i][j] = 子数组 nums[i..j] 中先手的净胜分。必须按区间长度从
 
 ## 关键词触发 / Triggers
 "轮流取两端" / "预测赢家" / "博弈" → dfs 净胜分 或 DP 区间填表
+
+12. Find Missing Elements / 找缺失元素 ❌ 做错过
+**难度**: Easy / 简单 | **标签**: Array, Hash Table / 数组, 哈希表
+
+## 原题 / Original Problem
+给你一个整数数组 nums，数组由若干互不相同的整数组成，原本包含某个范围内的所有整数，但可能缺失部分。该范围内最小和最大整数仍存在于 nums 中。返回有序列表包含所有缺失整数。
+
+**示例**: [1,4,2,5] → [3]；[7,8,6,9] → []；[5,1] → [2,3,4]
+
+## 解法一：布尔数组标记（最优，O(n)）
+值域 ≤ 100，用 boolean 数组当下标标记：
+```java
+class Solution {
+    public List<Integer> findMissingElements(int[] nums) {
+        int min = nums[0], max = nums[0];
+        for (int num : nums) {
+            if (num < min) min = num;
+            if (num > max) max = num;
+        }
+        boolean[] exist = new boolean[max - min + 1];
+        for (int num : nums) exist[num - min] = true;
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < exist.length; i++)
+            if (!exist[i]) result.add(i + min);
+        return result;
+    }
+}
+```
+
+## 解法二：HashSet（直观）
+```java
+class Solution {
+    public List<Integer> findMissingElements(int[] nums) {
+        int min = nums[0], max = nums[0];
+        for (int num : nums) {
+            if (num < min) min = num;
+            if (num > max) max = num;
+        }
+        Set<Integer> set = new HashSet<>();
+        for (int num : nums) set.add(num);
+        List<Integer> result = new ArrayList<>();
+        for (int i = min; i <= max; i++)
+            if (!set.contains(i)) result.add(i);
+        return result;
+    }
+}
+```
+
+## `exist[num - min]` 映射原理
+```
+nums=[1,4,2,5], min=1, max=5
+exist 大小 = 5-1+1 = 5
+
+下标:  0    1    2    3    4
+代表:  1    2    3    4    5
+公式: 下标 = 数字 - min    还原: 数字 = 下标 + min
+
+num=1: exist[1-1]=exist[0]=true
+num=4: exist[4-1]=exist[3]=true
+遍历 exist: exist[2]=false → 缺失 2+1=3 ✅
+```
+
+## 我犯的错 / My Mistakes
+- `min = nums[0]` 放在循环里面 → 每次重置
+- `exist(nums[j]-min)` 用圆括号 → 数组用中括号 `[]`
+- `result.add(exist[z]+min)` → exist[z] 是 true/false，应该是 `z+min`
+- `return null` → 没有缺失应返回空列表 `new ArrayList<>()`
+
+## 关键词触发 / Triggers
+"缺失元素" / "范围完整" → 布尔数组标记 或 HashSet + 范围遍历
