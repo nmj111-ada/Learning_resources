@@ -1116,6 +1116,97 @@ class Solution {
 ## 关键词触发 / Triggers
 "二叉树直径" / "最长路径" → maxDepth变体 + 全局变量记 left+right
 
+6. 102. Binary Tree Level Order Traversal / 二叉树的层序遍历
+**难度**: Medium / 中等 | **标签**: Tree, BFS / 树, 广度优先
+
+## 原题 / Original Problem
+Given the `root` of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).
+
+给你二叉树的根节点 root，返回其节点值的层序遍历（逐层从左到右）。
+
+**示例**: [3,9,20,null,null,15,7] → [[3],[9,20],[15,7]]
+
+## 代码 / Code（BFS 队列）
+```java
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> result = new ArrayList<>();
+        if (root == null) return result;
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        while (!q.isEmpty()) {
+            int size = q.size();
+            List<Integer> curLevel = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                TreeNode node = q.poll();
+                curLevel.add(node.val);
+                if (node.left != null) q.offer(node.left);
+                if (node.right != null) q.offer(node.right);
+            }
+            result.add(curLevel);
+        }
+        return result;
+    }
+}
+```
+
+过程: 队列排队，每轮 for 弹完当前层，同时下一层自动入队。
+```
+[3]       → 弹3,  9,20入队  → [[3]]
+[9,20]    → 弹9,20, 15,7入队 → [[3],[9,20]]
+[15,7]    → 弹15,7, 空      → [[3],[9,20],[15,7]]
+```
+
+## 关键理解
+- `List<List<Integer>>`：外层List=所有层，内层List=某层的数值
+- `q.size()` 在弹之前记：当前队列里全是同一层
+- 队列工作原理：弹一个 → 它的孩子入队 → 队列自己变 → 下一轮
+
+## 关键词触发 / Triggers
+"层序遍历" / "逐层" → BFS + 队列 + size 控制层
+
+7. 108. Convert Sorted Array to BST / 将有序数组转换为二叉搜索树
+**难度**: Easy / 简单 | **标签**: Tree, BST, Divide and Conquer / 树, 二叉搜索树, 分治
+
+## 原题 / Original Problem
+Given an integer array `nums` where the elements are sorted in ascending order, convert it to a height-balanced binary search tree.
+
+给你一个按升序排列的整数数组 nums，将其转换为一棵平衡的二叉搜索树。
+
+**示例**: [-10,-3,0,5,9] → [0,-3,9,-10,null,5]
+
+## 代码 / Code（递归）
+```java
+class Solution {
+    public TreeNode sortedArrayToBST(int[] nums) {
+        return build(nums, 0, nums.length - 1);
+    }
+    TreeNode build(int[] nums, int left, int right) {
+        if (left > right) return null;
+        int mid = (left + right) / 2;
+        TreeNode root = new TreeNode(nums[mid]);
+        root.left = build(nums, left, mid - 1);
+        root.right = build(nums, mid + 1, right);
+        return root;
+    }
+}
+```
+
+过程: [-10,-3,0,5,9]，mid=2取0当根 → 左边[-10,-3]取-3当左子 → 右边[5,9]取5当右子 → 递归到底。
+```
+       0
+      / \
+    -3   5
+    /     \
+  -10     9
+```
+
+## 为什么必定平衡？
+每次取正中间，左右一半大小差≤1。递归下去高度自动 log n。
+
+## 关键词触发 / Triggers
+"有序数组转BST" / "平衡" → 递归取中间 + 分治
+
 
 图论 / Graph
 
@@ -1177,6 +1268,145 @@ count=2 ✅
 
 ## 关键词触发 / Triggers
 "岛屿数量" / "连通区域" / "网格搜索" → DFS 洪水填充 或 BFS
+
+2. 207. Course Schedule / 课程表
+**难度**: Medium / 中等 | **标签**: DFS, BFS, Graph, Topological Sort / 深度优先, 广度优先, 图, 拓扑排序
+
+## 原题 / Original Problem
+There are a total of `numCourses` courses. Some courses have prerequisites, where `prerequisites[i] = [ai, bi]` means you must take `bi` before `ai`. Return `true` if you can finish all courses.
+
+你这个学期必须选修 numCourses 门课程。先修课程按数组 prerequisites 给出，prerequisites[i] = [ai, bi] 表示学习 ai 前必须先学 bi。判断是否可能完成所有课程。
+
+**示例**: 2, [[1,0]] → true；2, [[1,0],[0,1]] → false（循环依赖）
+
+## 解法一：三色 DFS 判环
+```java
+class Solution {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < numCourses; i++) graph.add(new ArrayList<>());
+        for (int[] p : prerequisites) {
+            int a = p[0], b = p[1];
+            graph.get(b).add(a);  // b → a
+        }
+        int[] visited = new int[numCourses]; // 0白 1灰 2黑
+        for (int i = 0; i < numCourses; i++) {
+            if (visited[i] == 0 && hasCycle(i, graph, visited)) return false;
+        }
+        return true;
+    }
+    boolean hasCycle(int course, List<List<Integer>> graph, int[] visited) {
+        if (visited[course] == 1) return true;   // 灰=当前路径上有环
+        if (visited[course] == 2) return false;  // 黑=以前查过了没环
+        visited[course] = 1;
+        for (int nei : graph.get(course))
+            if (hasCycle(nei, graph, visited)) return true;
+        visited[course] = 2;
+        return false;
+    }
+}
+```
+
+## 解法二：BFS 拓扑排序
+先上"不要等任何人"的课（入度=0），上完一门，等它的人减少一个依赖，谁的入度变成0了就入队继续上。
+```java
+class Solution {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < numCourses; i++) graph.add(new ArrayList<>());
+        int[] indegree = new int[numCourses];
+        for (int[] p : prerequisites) {
+            int a = p[0], b = p[1];
+            graph.get(b).add(a);
+            indegree[a]++;
+        }
+        Queue<Integer> q = new LinkedList<>();
+        for (int i = 0; i < numCourses; i++)
+            if (indegree[i] == 0) q.offer(i);
+        int count = 0;
+        while (!q.isEmpty()) {
+            int course = q.poll(); count++;
+            for (int next : graph.get(course)) {
+                indegree[next]--;
+                if (indegree[next] == 0) q.offer(next);
+            }
+        }
+        return count == numCourses;
+    }
+}
+```
+
+## 三色标记含义
+| 颜色 | 数字 | 含义 |
+|---|---|---|
+| 白 | 0 | 还没碰过 |
+| 灰 | 1 | 正在当前递归路径上 → 遇到灰=有环 |
+| 黑 | 2 | 已处理完，确定没环 → 直接跳过 |
+
+## 拓扑排序核心
+入度 = 这门课要等几门。入度=0 → 直接能上。上完一门 → 等它的课入度-1。
+最后上了 count 门，count == numCourses 就没环。
+
+## 关键词触发 / Triggers
+"先修课" / "课程表" / "循环依赖" → 三色DFS判环 或 拓扑排序
+
+
+回溯 / Backtracking
+
+1. 46. Permutations / 全排列
+**难度**: Medium / 中等 | **标签**: Array, Backtracking / 数组, 回溯
+
+## 原题 / Original Problem
+Given an array `nums` of distinct integers, return all the possible permutations.
+
+给定一个不含重复数字的数组 nums，返回其所有可能的全排列。
+
+**示例**: [1,2,3] → [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+
+## 代码 / Code
+```java
+class Solution {
+    List<List<Integer>> result = new ArrayList<>();
+    int[] nums;
+    public List<List<Integer>> permute(int[] nums) {
+        this.nums = nums;
+        backtrack(new ArrayList<>(), new boolean[nums.length]);
+        return result;
+    }
+    void backtrack(List<Integer> cur, boolean[] used) {
+        if (cur.size() == nums.length) {
+            result.add(new ArrayList<>(cur)); // 必须拷贝！
+            return;
+        }
+        for (int i = 0; i < nums.length; i++) {
+            if (used[i]) continue;
+            cur.add(nums[i]);     used[i] = true;
+            backtrack(cur, used);
+            cur.remove(cur.size() - 1); used[i] = false; // 回溯！
+        }
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+nums=[1,2,3]
+
+[] → 选1 → [1] → 选2 → [1,2] → 选3 → [1,2,3] ✓
+                ← 回溯删3 ←
+         [1] → 选3 → [1,3] → 选2 → [1,3,2] ✓
+                ← 回溯删2 ←
+    ← 回溯删1 ←
+[] → 选2 → [2] → ... 递归树展开所有分支
+```
+
+## 核心操作
+- `used[i]` 标记是否已选 → 避免重复
+- `cur.add(num)` 选了 → `cur.remove(last)` 回溯吐出来 → 换一个试
+- `new ArrayList<>(cur)` 必须拷贝：cur 会被后续回溯修改
+
+## 关键词触发 / Triggers
+"全排列" / "所有组合" / "互不相同" → 回溯 + used 标记
 
 
 双指针问题 / Two Pointers
