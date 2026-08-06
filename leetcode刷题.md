@@ -240,6 +240,273 @@ class Solution {
 ## 关键词触发
 "矩阵置零" / "原地" / "行和列清零" → 首行首列标记法
 
+6. 35. Search Insert Position / 搜索插入位置
+**难度**: Easy / 简单 | **标签**: Array, Binary Search / 数组, 二分查找
+
+## 原题 / Original Problem
+Given a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be if it were inserted in order. Must run in O(log n).
+
+给定一个排序数组和一个目标值，在数组中找到目标值并返回其索引。如果不存在，返回它将会被按顺序插入的位置。必须 O(log n)。
+
+**示例**: [1,3,5,6], target=5 → 2；target=2 → 1；target=7 → 4
+
+## 代码 / Code（标准二分模板）
+```java
+class Solution {
+    public int searchInsert(int[] nums, int target) {
+        int left = 0, right = nums.length;  // 开区间！right = 长度
+        while (left < right) {
+            int mid = (left + right) / 2;
+            if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        return left;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+nums=[1,3,5,6], target=2（不存在，插入位置1）
+
+第1轮: mid=2, nums[2]=5, 5<2? 否 → right=2
+第2轮: mid=1, nums[1]=3, 3<2? 否 → right=1
+第3轮: mid=0, nums[0]=1, 1<2? 是 → left=1
+left=1, right=1 → 退出 → return 1 ✅
+```
+
+## 标准二分模板三要点
+1. `right = nums.length`（开区间）→ 不用处理 length-1 边界
+2. `nums[mid] < target` → `left = mid + 1`（left 必须前进）
+3. 否则 → `right = mid`（right 必缩小）
+循环结束 left==right 直接返回。存在和插入位置统一处理。
+
+## 我犯的错 / My Mistakes
+- 死循环：`left = 0` 重置回开头 + `left = min` 不+1 → 区间永不缩小
+- `right = nums[i]` 把值当下标，min 用下标和值混着算
+- 自己手写二分差一错一，最后背标准模板一次过
+
+## 关键词触发 / Triggers
+"排序数组" / "O(log n)" / "插入位置" → 标准二分模板
+
+栈 / Stack
+
+1. 20. Valid Parentheses / 有效的括号
+**难度**: Easy / 简单 | **标签**: Stack, String / 栈, 字符串
+
+## 原题 / Original Problem
+Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.
+
+给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串 s，判断字符串是否有效。
+
+**示例**: "()" → true；"()[]{}" → true；"(]" → false；"([)]" → false
+
+## 代码 / Code
+```java
+class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        Map<Character, Character> map = new HashMap<>();
+        map.put(')', '(');
+        map.put(']', '[');
+        map.put('}', '{');
+        for (char c : s.toCharArray()) {
+            if (c == '(' || c == '[' || c == '{') {
+                stack.push(c);
+            } else {
+                if (stack.isEmpty()) return false;
+                if (stack.pop() != map.get(c)) return false;
+            }
+        }
+        return stack.isEmpty();
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+"([)]" ← 无效
+
+'(' 入栈 → [ ( ]
+'[' 入栈 → [ (, [ ]
+')' 弹出 '[' vs '(' ≠ → false ✅
+
+"([])" ← 有效
+'(' 入栈 → [ ( ]
+'[' 入栈 → [ (, [ ]
+']' 弹出 '[' == map.get(']')='[' ✓
+')' 弹出 '(' == map.get(')')='(' ✓
+栈空 → true ✅
+```
+
+## 核心思路
+左括号入栈，右括号弹栈比对。栈 = "等配对"的队列，后进先出保证顺序正确。
+
+## 易错点 / Pitfalls
+- `map.put('(', ')')` 方向反了！必须 **右括号 → 左括号**（因为查的是 map.get(右括号)）
+- 栈空遇到右括号 → false
+- 最后必须 `stack.isEmpty()`（有未闭合的左括号也是 false）
+
+## 关键词触发 / Triggers
+"括号匹配" / "有效字符串" → 栈 + 右括号到左括号映射
+
+堆 / Heap
+
+1. 215. Kth Largest Element in an Array / 数组中的第 K 个最大元素
+**难度**: Medium / 中等 | **标签**: Array, Heap, Divide and Conquer / 数组, 堆, 分治
+
+## 原题 / Original Problem
+Given an integer array `nums` and an integer `k`, return the k-th largest element in the array. Note that it is the k-th largest element in the sorted order, not the k-th distinct element.
+
+给定整数数组 nums 和整数 k，返回数组中第 k 个最大的元素（排序后的第 k 个，不是第 k 个不同元素）。要求 O(n)。
+
+**示例**: [3,2,1,5,6,4], k=2 → 5
+
+## 代码 / Code（最小堆，O(n log k)）
+```java
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        PriorityQueue<Integer> heap = new PriorityQueue<>();  // 最小堆，堆顶最小
+        for (int num : nums) {
+            if (heap.size() < k) {
+                heap.offer(num);
+            } else if (num > heap.peek()) {
+                heap.poll();
+                heap.offer(num);
+            }
+        }
+        return heap.peek();
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+nums=[3,2,1,5,6,4], k=2  堆只留2个最大的
+
+3 → 没满 → [3]
+2 → 没满 → [2,3]  堆顶2
+1 → 满, 1<堆顶2 → 忽略 → [2,3]
+5 → 满, 5>堆顶2 → 弹2加5 → [3,5]  堆顶3
+6 → 满, 6>堆顶3 → 弹3加6 → [5,6]  堆顶5
+4 → 满, 4<堆顶5 → 忽略 → [5,6]
+
+堆顶 5 = 第2大 ✅
+```
+
+## 核心思路
+最小堆永远只存 k 个最大的数。堆顶 = 堆里最小的 = 第 k 大。
+新数比堆顶大 → 淘汰堆顶换新数；比堆顶小 → 不可能是前 k 大，忽略。
+
+## 为什么排序不行？
+排序 O(n log n) 超时，堆 O(n log k)。k 远小于 n 时堆明显更快。
+
+## 关键词触发 / Triggers
+"第 K 大" / "第 K 小" → 最小堆（第K大）或 最大堆（第K小），堆只留 k 个
+
+贪心 / Greedy
+
+1. 121. Best Time to Buy and Sell Stock / 买卖股票的最佳时机
+**难度**: Easy / 简单 | **标签**: Array, DP, Greedy / 数组, 动态规划, 贪心
+
+## 原题 / Original Problem
+You are given an array `prices` where `prices[i]` is the price of a given stock on the i-th day. You want to maximize profit by choosing a single day to buy and a different day in the future to sell.
+
+给定一个数组 prices，prices[i] 表示第 i 天股票价格。只能某一天买入、未来某一天卖出，计算最大利润。不能获利则返回 0。
+
+**示例**: [7,1,5,3,6,4] → 5（第2天买1，第5天卖6）
+
+## 代码 / Code
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        int bestBuy = prices[0];  // 至今最低买入价
+        int maxProfit = 0;
+        for (int i = 0; i < prices.length; i++) {
+            bestBuy = Math.min(bestBuy, prices[i]);      // 更新历史最低价
+            maxProfit = Math.max(maxProfit, prices[i] - bestBuy); // 今天卖赚多少
+        }
+        return maxProfit;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+prices = [7, 1, 5, 3, 6, 4]
+
+第0天: bestBuy=7
+第1天: 1<7 → bestBuy=1
+第2天: 利润5-1=4, max=4
+第3天: 利润3-1=2, max=4
+第4天: 利润6-1=5, max=5
+第5天: 利润4-1=3, max=5
+
+答案 5 ✅
+```
+
+## 为什么不是滑动窗口？
+滑动窗口要有容器和收缩逻辑。这题只有一个"历史最低价"变量——记住过去，面向未来。贪心：每一步局部最优（更新最低价），累积成全局最优。
+
+## 关键词触发 / Triggers
+"买卖股票" / "最大利润" / "单次交易" → 维护历史最低价 + 每次算利润
+
+动态规划 / DP
+
+1. 70. Climbing Stairs / 爬楼梯
+**难度**: Easy / 简单 | **标签**: Math, DP / 数学, 动态规划
+
+## 原题 / Original Problem
+You are climbing a staircase. It takes `n` steps to reach the top. Each time you can either climb 1 or 2 steps. Return the number of distinct ways to climb to the top.
+
+假设你正在爬楼梯，需要 n 阶才能到楼顶。每次可以爬 1 或 2 个台阶，有多少种不同方法？
+
+**示例**: n=2 → 2（1+1, 2）；n=3 → 3（1+1+1, 1+2, 2+1）
+
+## 代码 / Code（DP）
+```java
+class Solution {
+    public int climbStairs(int n) {
+        if (n <= 2) return n;
+        int[] dp = new int[n + 1];
+        dp[1] = 1;
+        dp[2] = 2;
+        for (int i = 3; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
+    }
+}
+```
+
+## dp[i] 是什么意思
+`dp[i]` = "爬到第 i 阶有多少种方法"
+```
+dp[1]=1  dp[2]=2  dp[3]=dp[2]+dp[1]=3  dp[4]=3+2=5 ...
+这就是斐波那契数列
+```
+
+## 为什么 dp[i] = dp[i-1] + dp[i-2]？
+到第 i 阶，最后一步只有两种可能：
+① 从 i-1 爬 1 步上来 → 前面有 dp[i-1] 种方法
+② 从 i-2 爬 2 步上来 → 前面有 dp[i-2] 种方法
+两种情况相加。
+
+## 为什么数组长度是 n+1？
+你要访问 dp[n]，数组下标 0~n 共 n+1 个。长度 = 最大下标 + 1。
+
+## 递归版的致命问题（重复计算）
+```java
+return dfs(n-1) + dfs(n-2);  // 逻辑对，但 dfs(2) 被重复算几亿次
+```
+n=45 时超时！DP 把每个中间结果存起来只算一次，空间换时间。这就是动态规划的核心。
+
+## 关键词触发 / Triggers
+"爬楼梯" / "斐波那契" / "1或2步" → dp[i] = dp[i-1] + dp[i-2]
+
 子串 / Subarray
 
 1. 560. Subarray Sum Equals K / 和为 K 的子数组
