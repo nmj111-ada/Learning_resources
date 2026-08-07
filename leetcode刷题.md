@@ -676,6 +676,57 @@ class Solution {
 看到 "分组" / "归类" / "字母异位词" → HashMap + 签名
 和 Two Sum 一样：找同类项 → HashMap
 
+3. 128. Longest Consecutive Sequence / 最长连续序列
+**难度**: Medium / 中等 | **标签**: Array, Hash Table / 数组, 哈希表
+
+## 原题 / Original Problem
+Given an unsorted array of integers `nums`, return the length of the longest consecutive elements sequence. Must run in O(n).
+
+给定一个未排序的整数数组 nums，找出数字连续的最长序列的长度。要求 O(n)。
+
+**示例**: [100,4,200,1,3,2] → 4（[1,2,3,4]）；[0,3,7,2,5,8,4,6,0,1] → 9
+
+## 代码 / Code
+```java
+class Solution {
+    public int longestConsecutive(int[] nums) {
+        Set<Integer> set = new HashSet<>();
+        for (int num : nums) set.add(num);
+        int longest = 0;
+        for (int num : set) {
+            if (set.contains(num - 1)) continue;  // 不是开头，跳过
+            int cur = num, len = 1;
+            while (set.contains(cur + 1)) { cur++; len++; }
+            longest = Math.max(longest, len);
+        }
+        return longest;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+nums=[100,4,200,1,3,2] → set={100,4,200,1,3,2}
+
+100: contains(99)? 否 → 开头！往后: 101? 无 → len=1
+4:   contains(3)? 是 → 不是开头，跳过
+200: contains(199)? 否 → 开头！往后无 → len=1
+1:   contains(0)? 否 → 开头！1→2→3→4 → len=4 ← 最大
+3:   contains(2)? 是 → 跳过
+2:   contains(1)? 是 → 跳过
+
+longest = 4 ✅
+```
+
+## 为什么 O(n)？
+只有"开头"才往后数。每个数最多被数一次（只有它前面没数时才启动），所以总次数 O(n)。
+
+## 怎么判断开头？
+一个数是序列开头 ⟺ set 里没有 num-1。有 num-1 说明它是中间/末尾，不用从它数。
+
+## 关键词触发 / Triggers
+"最长连续序列" / "连续数字" / "O(n)" → HashSet + 只从开头数
+
 
 链表 / Linked List
 
@@ -1083,6 +1134,133 @@ head 始终指着节点①。cur 改的是链中间的 next 挂钩，head 通过
 
 ## 关键词触发 / Triggers
 "删除倒数第N个" / "一趟扫描" → 计数法 或 快慢指针(fast先走n步)
+
+9. 24. Swap Nodes in Pairs / 两两交换链表中的节点
+**难度**: Medium / 中等 | **标签**: Linked List, Recursion / 链表, 递归
+
+## 原题 / Original Problem
+Given a linked list, swap every two adjacent nodes and return its head. You must solve the problem without modifying the values in the list's nodes.
+
+给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。只能进行节点交换，不能修改节点内部的值。
+
+**示例**: [1,2,3,4] → [2,1,4,3]
+
+## 代码 / Code（dummy + 指针）
+```java
+class Solution {
+    public ListNode swapPairs(ListNode head) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode cur = dummy;
+        while (cur.next != null && cur.next.next != null) {
+            ListNode first = cur.next;      // 1
+            ListNode second = cur.next.next; // 2
+            first.next = second.next;   // 1 → 3
+            second.next = first;        // 2 → 1
+            cur.next = second;          // dummy → 2
+            cur = first;                // 下一对起点
+        }
+        return dummy.next;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+dummy → 1 → 2 → 3 → 4 → null
+
+第1对: first=1, second=2
+  1→3, 2→1, dummy→2 → dummy→2→1→3→4
+  cur=1
+第2对: first=3, second=4
+  3→null, 4→3, 1→4 → dummy→2→1→4→3
+  cur=3
+
+dummy.next → 2→1→4→3 ✅
+```
+
+## 核心要点
+- first/second 只是指针变量，指现有的节点，不是新建
+- 交换的是 next 箭头（不改 val）
+- dummy 站桩返回头，cur 每轮移到本组末尾
+
+## 易错点 / Pitfalls
+- 别交换 cur 和 cur.next（那是 dummy 和 1），要交换 cur.next 和 cur.next.next
+- 交换后 cur 移到 first（组尾），不是 second
+- return 前 head 已经丢了，要用 dummy.next
+
+## 关键词触发 / Triggers
+"两两交换" / "相邻节点交换" → dummy + first/second 指针换箭头
+
+10. 25. Reverse Nodes in k-Group / K 个一组翻转链表
+**难度**: Hard / 困难 | **标签**: Linked List, Recursion / 链表, 递归
+
+## 原题 / Original Problem
+Given the head of a linked list, reverse the nodes of the list k at a time and return the modified list. If the number of nodes is not a multiple of k, the remaining nodes should stay in their original order.
+
+给你链表的头节点 head，每 k 个节点一组进行翻转，返回修改后的链表。节点总数不是 k 的整数倍时，最后剩余的节点保持原有顺序。
+
+**示例**: [1,2,3,4,5], k=2 → [2,1,4,3,5]；k=3 → [3,2,1,4,5]
+
+## 代码 / Code
+```java
+class Solution {
+    public ListNode reverseKGroup(ListNode head, int k) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode cur = dummy;
+        while (true) {
+            ListNode tail = cur;              // ← 每轮重新数！
+            for (int i = 0; i < k; i++) {
+                if (tail.next == null) return dummy.next;  // 不够 k 个，结束
+                tail = tail.next;
+            }
+            ListNode oldFirst = cur.next;     // 反转前记下组头
+            ListNode nextGroup = tail.next;   // 下一组头
+            tail.next = null;                 // 切断本组
+            ListNode newHead = reverse(cur.next);
+            cur.next = newHead;               // 接上头
+            cur = oldFirst;                   // cur 移到组尾
+            cur.next = nextGroup;             // 接上尾
+        }
+    }
+    private ListNode reverse(ListNode head) {
+        ListNode prev = null, now = head;
+        while (now != null) {
+            ListNode next = now.next;
+            now.next = prev;
+            prev = now;
+            now = next;
+        }
+        return prev;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+[1,2,3,4,5], k=2
+
+第1轮: tail 数到 2, oldFirst=1, nextGroup=3
+  切断 1→2, reverse → 2→1, cur(组尾1)→3
+  → 2→1→3→4→5
+第2轮: cur=1, tail 从 1 数到 4, oldFirst=3, nextGroup=5
+  切断 3→4, reverse → 4→3, 1→4, 3→5
+  → 2→1→4→3→5
+第3轮: cur=3, 数 k 个: 5 → null → 不够 → return dummy.next ✅
+```
+
+## 核心要点
+- swapPairs 是 k=2 的特例！结构一模一样，只是 k 可变 + 需要先数够
+- `tail = cur` 必须放 while 里面（每轮重新数）
+- 三个指针：tail(数k个/切断), oldFirst(反转前存组头), nextGroup(下一组)
+- 两个 next：`cur.next = newHead` 接上头，`cur.next = nextGroup` 接上尾
+
+## 我犯的错 / My Mistakes
+- `tail = cur` 放在 while 外面 → 第二轮 tail 不重置，数错位置
+- 把 cur 当成交换对象（应该交换 cur.next 和 cur.next.next）
+- 拼音变量名 + 未定义变量混进代码
+
+## 关键词触发 / Triggers
+"K个一组翻转" / "每k个反转" → dummy + 数k个 + reverse 子函数 + 头尾都接
 
 
 二叉树 / Binary Tree
@@ -1806,6 +1984,72 @@ Container 求 max(宽×高)，这题求 sum(每列积水量)。
 
 ## 关键词触发
 "接雨水" / "柱子存水" → 双指针 / DP 预处理 / 单调栈
+
+4. 15. 3Sum / 三数之和
+**难度**: Medium / 中等 | **标签**: Array, Two Pointers, Sorting / 数组, 双指针, 排序
+
+## 原题 / Original Problem
+Given an integer array `nums`, return all the triplets `[nums[i], nums[j], nums[k]]` such that `i != j != k` and `nums[i] + nums[j] + nums[k] == 0`. The solution set must not contain duplicate triplets.
+
+给你一个整数数组 nums，返回所有和为 0 且不重复的三元组。
+
+**示例**: [-1,0,1,2,-1,-4] → [[-1,-1,2],[-1,0,1]]
+
+## 代码 / Code
+```java
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        List<List<Integer>> result = new ArrayList<>();
+        Arrays.sort(nums);
+        for (int i = 0; i < nums.length - 2; i++) {
+            if (i > 0 && nums[i] == nums[i - 1]) continue;  // 固定数去重
+            int left = i + 1, right = nums.length - 1;
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                if (sum == 0) {
+                    result.add(Arrays.asList(nums[i], nums[left], nums[right]));
+                    left++; right--;
+                    while (left < right && nums[left] == nums[left - 1]) left++;   // 左去重
+                    while (left < right && nums[right] == nums[right + 1]) right--; // 右去重
+                } else if (sum < 0) {
+                    left++;
+                } else {
+                    right--;
+                }
+            }
+        }
+        return result;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+nums=[-4,-1,-1,0,1,2]（排序后）
+
+i=0(-4): 找两数和=4 → -1+2=1, 0+2=2... 没有 → 结束
+i=1(-1): 找两数和=1 → left=2(-1), right=5(2): -1+2=1 → [-1,-1,2] ✓
+          left++, right-- → left=3(0), right=4(1): 0+1=1 → [-1,0,1] ✓
+i=2(-1): 和 i=1 相同 → 跳过
+i=3(0): left=4(1), right=5(2): 1+2=3 ≠ 0 → 结束
+
+结果: [[-1,-1,2],[-1,0,1]] ✅
+```
+
+## 核心思路：固定一个 + 双指针
+1. 排序（让双指针有意义）
+2. 固定 i → 在 [i+1, n-1] 用双指针找两数和 = -nums[i]
+3. 两处去重：固定数跳过相同值，找到一组后指针跳过重复值
+
+## 易错点 / Pitfalls
+- 双指针要 while 循环，不能只判断一次
+- 加进结果的是数值 `Arrays.asList(nums[i], nums[left], nums[right])` 不是下标
+- `result.add` 一次只能加一个三元组
+- 忘了排序就双指针失效
+
+## 关键词触发 / Triggers
+"三数之和" / "和为0的三元组" / "不重复" → 排序 + 固定一个 + 双指针 + 去重
+
 滑动窗口 / Sliding Window
 
 1. 3. Longest Substring Without Repeating Characters / 无重复字符的最长子串
