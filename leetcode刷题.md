@@ -1262,6 +1262,161 @@ class Solution {
 ## 关键词触发 / Triggers
 "K个一组翻转" / "每k个反转" → dummy + 数k个 + reverse 子函数 + 头尾都接
 
+11. 138. Copy List with Random Pointer / 复制带随机指针的链表
+**难度**: Medium / 中等 | **标签**: Hash Table, Linked List / 哈希表, 链表
+
+## 原题 / Original Problem
+Given a linked list of length n, where each node has an additional `random` pointer that can point to any node in the list or null. Construct a **deep copy** of the list — every new node's `next` and `random` must point to new nodes in the copied list.
+
+给你一个长度为 n 的链表，每个节点包含一个额外增加的随机指针 random。构造这个链表的深拷贝——复制链表的指针都不能指向原链表中的节点。
+
+**示例**: [[7,null],[13,0],[11,4],[10,2],[1,0]] → 同样结构的新链表
+
+## 代码 / Code（HashMap 两趟法）
+```java
+class Solution {
+    public Node copyRandomList(Node head) {
+        Map<Node, Node> map = new HashMap<>();
+        Node oldhead = head;
+        // 第一趟：只建节点 + 填 map（旧节点 → 新节点）
+        while (head != null) {
+            map.put(head, new Node(head.val));
+            head = head.next;
+        }
+        // 第二趟：连接 next 和 random
+        head = oldhead;
+        while (head != null) {
+            map.get(head).next = map.get(head.next);
+            map.get(head).random = map.get(head.random);
+            head = head.next;
+        }
+        return map.get(oldhead);
+    }
+}
+```
+
+## 为什么不能一次复制？
+random 可能指向当前还没复制到的节点：
+```
+[7]→[13]→[11]→[10]→[1]
+random: null  0    4    2   0
+复制 [13] 时它的 random 指向 [0]（[7]），已建 ✓
+但复制 [11] 时 random 指向 [4]，还没建！
+```
+所以必须先建完全部节点，再用 map 对照连接。
+
+## map.get(head) 反复取当前新节点
+第二趟不用额外变量，`map.get(head)` 直接拿到"head 对应的新节点"。
+`map.get(head.random)` 里 head.random 为 null 时，HashMap 允许 null key，返回 null —— 正好符合要求。
+
+## 我犯的错 / My Mistakes
+- 用 ListNode 类型（这题是 Node）
+- `map.put(head, cur)` cur 未定义
+- 第二趟用了第一趟的 newNode（早没了），应该 `map.get(head)`
+- return 要 `map.get(oldhead)`（原头对应的新头）
+
+## 关键词触发 / Triggers
+"深拷贝" / "随机指针" / "复制链表" → 两趟 + HashMap(旧→新)
+
+12. 148. Sort List / 排序链表 ❌ 做错过
+**难度**: Medium / 中等 | **标签**: Linked List, Merge Sort, Divide and Conquer / 链表, 归并排序, 分治
+
+## 原题 / Original Problem
+Given the `head` of a linked list, return the list after sorting it in ascending order. Follow up: sort in O(n log n) time and constant space.
+
+给你链表的头结点 head，将其按升序排列并返回。进阶：O(n log n) 时间 + O(1) 空间。
+
+**示例**: [4,2,1,3] → [1,2,3,4]
+
+## 解法一：递归归并（O(n log n)，空间 O(log n) 递归栈）
+```java
+class Solution {
+    public ListNode sortList(ListNode head) {
+        if (head == null || head.next == null) return head;
+        // ① 快慢找中点
+        ListNode slow = head, fast = head;
+        while (fast.next != null && fast.next.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        ListNode mid = slow.next;
+        slow.next = null;  // 切断成两半
+        // ② 递归排序两半
+        ListNode left = sortList(head);
+        ListNode right = sortList(mid);
+        // ③ 合并（就是 21 题的 merge）
+        ListNode dummy = new ListNode(-1);
+        ListNode cur = dummy;
+        while (left != null && right != null) {
+            if (left.val <= right.val) { cur.next = left; left = left.next; }
+            else { cur.next = right; right = right.next; }
+            cur = cur.next;
+        }
+        cur.next = (left != null) ? left : right;  // 剩余整个接上！
+        return dummy.next;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+[4,2,1,3]
+
+sortList([4,2,1,3])
+  切: [4,2] 和 [1,3]
+  sortList([4,2]) → 切 [4],[2] → merge → [2,4]
+  sortList([1,3]) → 切 [1],[3] → merge → [1,3]
+  merge([2,4],[1,3]):
+    2vs1→取1, 2vs3→取2, 4vs3→取3, right=null
+    cur.next=left剩余[4] → [1,2,3,4] ✅
+```
+
+## 为什么最后一行 cur.next = 剩余链必须有？
+while 条件是 left!=null && right!=null，其中一个先变 null 就退出，剩下那个可能还有节点，整个接上否则全部丢失，链表断在中间。
+
+## 解法二：迭代归并（O(1) 空间）
+不用递归，从段长 1 开始迭代合并，段长每轮翻倍：
+```java
+class Solution {
+    public ListNode sortList(ListNode head) {
+        if (head == null || head.next == null) return head;
+        int n = 0;
+        for (ListNode p = head; p != null; p = p.next) n++;
+        ListNode dummy = new ListNode(-1, head);
+        for (int len = 1; len < n; len *= 2) {
+            ListNode cur = dummy.next, tail = dummy;
+            while (cur != null) {
+                ListNode l1 = cur;
+                cur = cut(l1, len);
+                ListNode l2 = cur;
+                cur = cut(l2, len);
+                tail.next = merge(l1, l2);
+                while (tail.next != null) tail = tail.next;
+            }
+        }
+        return dummy.next;
+    }
+    // 从 head 走 k 步切断，返回下一段头
+    ListNode cut(ListNode head, int k) {
+        ListNode p = head;
+        while (--k > 0 && p != null) p = p.next;
+        ListNode next = (p != null) ? p.next : null;
+        if (p != null) p.next = null;
+        return next;
+    }
+    ListNode merge(ListNode l1, ListNode l2) { /* 同解法一 */ }
+}
+```
+
+## 我犯的错 / My Mistakes
+- 冒泡思路（相邻交换）→ O(n²) 超时，要归并
+- `Node left` 类型错（应该 ListNode）
+- `sortList()` 忘了传参数（应该 sortList(head) 和 sortList(mid)）
+- 忘写 `cur.next = 剩余链` → 只输出第一个节点
+
+## 关键词触发 / Triggers
+"链表排序" / "O(n log n)" → 归并排序（快慢找中 + 切半 + merge）
+
 
 二叉树 / Binary Tree
 
