@@ -1417,6 +1417,160 @@ class Solution {
 ## 关键词触发 / Triggers
 "链表排序" / "O(n log n)" → 归并排序（快慢找中 + 切半 + merge）
 
+13. 146. LRU Cache / LRU 缓存 ❌ 做错过
+**难度**: Medium / 中等 | **标签**: Hash Table, Linked List, Design / 哈希表, 链表, 设计
+
+## 原题 / Original Problem
+Design a data structure that follows the constraints of a **Least Recently Used (LRU) cache**. Implement the `LRUCache` class: get(key) and put(key, value) both run in O(1) average time.
+
+设计并实现满足 LRU（最近最少使用）缓存约束的数据结构。get 和 put 都要求 O(1)。
+
+**示例**: 容量2，put(1,1), put(2,2), get(1)→1, put(3,3)踢掉2, get(2)→-1, ...
+
+## 代码 / Code
+```java
+class LRUCache {
+    class Node {
+        int key, val;
+        Node prev, next;
+        Node(int k, int v) { key = k; val = v; }
+    }
+    Map<Integer, Node> map = new HashMap<>();
+    int capacity;
+    Node head = new Node(0, 0);  // 虚拟头（最左=最久没用）
+    Node tail = new Node(0, 0);  // 虚拟尾（最右=最新）
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    void addToTail(Node node) {
+        node.prev = tail.prev;
+        node.next = tail;
+        tail.prev.next = node;
+        tail.prev = node;
+    }
+    void removeNode(Node node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+    void moveToTail(Node node) { removeNode(node); addToTail(node); }
+    Node removeHead() {
+        Node node = head.next;
+        removeNode(node);   // ← 必须真删！只返回不删会残留
+        return node;
+    }
+
+    public int get(int key) {
+        if (!map.containsKey(key)) return -1;
+        moveToTail(map.get(key));   // 访问了 → 挪到最新
+        return map.get(key).val;
+    }
+
+    public void put(int key, int value) {
+        if (map.containsKey(key)) {
+            Node node = map.get(key);
+            node.val = value;
+            moveToTail(node);
+        } else {
+            if (map.size() == capacity) {
+                Node old = removeHead();   // 踢最久没用
+                map.remove(old.key);
+            }
+            Node node = new Node(key, value);
+            map.put(key, node);
+            addToTail(node);
+        }
+    }
+}
+```
+
+## 核心机制：HashMap + 双向链表
+```
+HashMap: key → 节点（O(1) 查找）
+双向链表: 维护使用顺序（O(1) 删/插）
+
+访问（get/put已有key）→ 节点挪到链表尾部（最新）
+容量满加新的 → 踢掉链表头部（最久没用）
+```
+
+## 为什么必须双向链表？
+删除中间节点需要知道前一个：单向链表只能从 head 遍历找前驱 O(n)，双链表 `node.prev.next` 一步 O(1)。
+
+## 虚拟头尾 head/tail 的作用
+空链表时 head<->tail 互相指，操作不用特判"空链表"。Node(0,0) 的 0 只是占位，值不重要。
+
+## 我犯的错 / My Mistakes
+- removeHead 只 return head.next 不 removeNode → 链表残留淘汰节点 → 容量管理失效
+- 以为构造方法要实现全部逻辑 → 其实只是初始化（框架会调用）
+- 用 List/ListNode 混着写，机制没想清楚就动笔
+
+## 关键词触发 / Triggers
+"LRU" / "最近最少使用" / "O(1) get put" → HashMap + 双向链表 + 虚拟头尾
+
+14. 23. Merge k Sorted Lists / 合并 K 个升序链表
+**难度**: Hard / 困难 | **标签**: Linked List, Heap, Merge Sort / 链表, 堆, 归并
+
+## 原题 / Original Problem
+You are given an array of `k` linked-lists, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.
+
+给你一个链表数组，每个链表都已经按升序排列。将所有链表合并到一个升序链表中返回。
+
+**示例**: [[1,4,5],[1,3,4],[2,6]] → [1,1,2,3,4,4,5,6]
+
+## 代码 / Code（分治归并）
+```java
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+        return merge(lists, 0, lists.length - 1);
+    }
+    private ListNode merge(ListNode[] lists, int left, int right) {
+        if (left == right) return lists[left];
+        int mid = left + (right - left) / 2;
+        ListNode l1 = merge(lists, left, mid);
+        ListNode l2 = merge(lists, mid + 1, right);
+        return mergeTwoLists(l1, l2);
+    }
+    private ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        if (l1 == null) return l2;
+        if (l2 == null) return l1;
+        if (l1.val <= l2.val) {
+            l1.next = mergeTwoLists(l1.next, l2);
+            return l1;
+        } else {
+            l2.next = mergeTwoLists(l1, l2.next);
+            return l2;
+        }
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+lists = [[1,4,5],[1,3,4],[2,6]]
+
+merge(lists, 0, 2)  ← 第一次调用传 (0, length-1)
+  mid=1
+  merge(0,1): mid=0 → merge(0,0)=[1,4,5], merge(1,1)=[1,3,4]
+              mergeTwoLists → [1,1,3,4,4,5]
+  merge(2,2) = [2,6]
+  mergeTwoLists([1,1,3,4,4,5],[2,6]) = [1,1,2,3,4,4,5,6] ✅
+```
+
+## left/right 是哪来的？
+递归区间边界：第一次调用显式传 (0, length-1)，之后每层由 mid 分裂：
+左半 (left, mid)，右半 (mid+1, right)，直到 left==right（只剩一个链表）。
+
+## l1 l2 是链表头不是数组
+lists 是 ListNode[]（装链表头的数组），l1/l2 是单个 ListNode。
+mergeTwoLists 每次比较两个链表当前头的 val，取小的接上，递归比剩余。
+
+## 关键词触发 / Triggers
+"合并K个有序链表" → 分治归并（两两合并） 或 优先队列（k个头进堆）
+
 
 二叉树 / Binary Tree
 
