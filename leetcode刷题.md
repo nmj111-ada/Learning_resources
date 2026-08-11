@@ -353,6 +353,127 @@ class Solution {
 ## 关键词触发 / Triggers
 "括号匹配" / "有效字符串" → 栈 + 右括号到左括号映射
 
+2. 155. Min Stack / 最小栈 ❌ 做错过
+**难度**: Medium / 中等 | **标签**: Stack, Design / 栈, 设计
+
+## 原题 / Original Problem
+Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.
+
+设计一个支持 push、pop、top 操作，并能在常数时间内检索到最小元素的栈。
+
+**示例**: push(-2), push(0), push(-3), getMin→-3, pop(), top→0, getMin→-2
+
+## 代码 / Code（双栈）
+```java
+class MinStack {
+    Stack<Integer> stack = new Stack<>();
+    Stack<Integer> minStack = new Stack<>();
+
+    public MinStack() { }  // 成员变量声明时已初始化，构造方法空着
+
+    public void push(int value) {
+        stack.push(value);
+        if (minStack.isEmpty()) minStack.push(value);
+        else minStack.push(Math.min(value, minStack.peek()));
+    }
+    public void pop() {
+        stack.pop();
+        minStack.pop();
+    }
+    public int top() { return stack.peek(); }
+    public int getMin() { return minStack.peek(); }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+push(-2):  主=[-2]      min=[-2]
+push(0):   主=[-2,0]    min=[-2,-2]   ← 0 不小于 -2，再记 -2
+push(-3):  主=[-2,0,-3] min=[-2,-2,-3] ← -3 更小，记 -3
+getMin():  min栈顶 = -3 ✅
+pop():     主=[-2,0]    min=[-2,-2]
+top():     主栈顶 = 0 ✅
+getMin():  min栈顶 = -2 ✅
+```
+
+## 核心思路
+只存一个 min 变量不行——pop 掉最小值后不知道回退到哪。
+辅助栈每个位置 = 主栈对应高度的最小值，pop 时同步弹，永远正确。
+
+## 我犯的错 / My Mistakes
+- 构造方法里 `Stack<Integer> stack = new Stack<>()` → 加类型声明 = 新建局部变量，把成员变量藏了！构造方法应该空着
+- `if (minStack == null)` → 成员变量永远不为 null，应该 `isEmpty()`
+
+## 关键词触发 / Triggers
+"最小栈" / "O(1) 取最小" → 双栈（主栈 + 同步最小栈）
+
+3. 394. Decode String / 字符串解码
+**难度**: Medium / 中等 | **标签**: Stack, String / 栈, 字符串
+
+## 原题 / Original Problem
+Given an encoded string, return its decoded string. The encoding rule is `k[encoded_string]`, where the `encoded_string` inside the square brackets is repeated exactly k times.
+
+给定一个经过编码的字符串，返回解码后的字符串。编码规则 k[encoded_string] 表示方括号内部字符串重复 k 次。
+
+**示例**: "3[a]2[bc]" → "aaabcbc"；"3[a2[c]]" → "accaccacc"；"abc3[cd]xyz" → "abccdcdcdxyz"
+
+## 代码 / Code（双栈）
+```java
+class Solution {
+    public String decodeString(String s) {
+        Stack<Integer> numStack = new Stack<>();
+        Stack<String> strStack = new Stack<>();
+        String cur = "";   // 当前拼接的串
+        int k = 0;         // 当前数字
+        for (char c : s.toCharArray()) {
+            if (Character.isDigit(c)) {
+                k = k * 10 + (c - '0');   // 处理多位数 "12"
+            } else if (c == '[') {
+                numStack.push(k);
+                strStack.push(cur);
+                cur = "";
+                k = 0;
+            } else if (c == ']') {
+                int repeat = numStack.pop();
+                String prev = strStack.pop();
+                cur = prev + cur.repeat(repeat);
+            } else {
+                cur += c;
+            }
+        }
+        return cur;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+"3[a2[c]]"
+
+数字栈:[] 字符串栈:[] 当前串:""
+'3' → k=3
+'[' → 数字栈:[3] 字符串栈:[""] 当前串=""
+'a' → 当前串 "a"
+'2' → k=2
+'[' → 数字栈:[3,2] 字符串栈:["","a"] 当前串=""
+'c' → 当前串 "c"
+']' → 弹2, 弹"a" → "a"+"cc" = "acc"
+']' → 弹3, 弹"" → ""+"accaccacc" ✅
+```
+
+## 核心思路
+嵌套括号从最里面解（后进先出 = 栈）。
+- 数字栈：存重复次数 k
+- 字符串栈：存已拼好的部分
+- 遇到 `]` 弹栈拼接：prev + cur.repeat(k)
+
+## c - '0' 是为什么
+字符数字转真数字：'3' 的 ASCII 51 - '0'(48) = 3。
+多位数：k*10 + 新数字，如 '1','2' → 1*10+2 = 12。
+
+## 关键词触发 / Triggers
+"字符串解码" / "k[字符串]" / "嵌套括号" → 双栈（数字栈 + 字符串栈）
+
 堆 / Heap
 
 1. 215. Kth Largest Element in an Array / 数组中的第 K 个最大元素
@@ -406,6 +527,62 @@ nums=[3,2,1,5,6,4], k=2  堆只留2个最大的
 
 ## 关键词触发 / Triggers
 "第 K 大" / "第 K 小" → 最小堆（第K大）或 最大堆（第K小），堆只留 k 个
+
+2. 347. Top K Frequent Elements / 前 K 个高频元素
+**难度**: Medium / 中等 | **标签**: Array, Hash Table, Heap / 数组, 哈希表, 堆
+
+## 原题 / Original Problem
+Given an integer array `nums` and an integer `k`, return the k most frequent elements. You may return the answer in any order.
+
+给你一个整数数组 nums 和一个整数 k，返回出现频率前 k 高的元素。
+
+**示例**: [1,1,1,2,2,3], k=2 → [1,2]
+
+## 代码 / Code（HashMap 统计 + 最小堆）
+```java
+class Solution {
+    public int[] topKFrequent(int[] nums, int k) {
+        // ① 统计频率
+        Map<Integer, Integer> freq = new HashMap<>();
+        for (int num : nums) freq.put(num, freq.getOrDefault(num, 0) + 1);
+        // ② 最小堆，按频率排序，只留 k 个最高的
+        PriorityQueue<Integer> heap = new PriorityQueue<>(
+            (a, b) -> freq.get(a) - freq.get(b)
+        );
+        for (int key : freq.keySet()) {
+            heap.offer(key);
+            if (heap.size() > k) heap.poll();   // 超过 k 个踢掉频率最低的
+        }
+        // ③ 取出
+        int[] result = new int[k];
+        for (int i = 0; i < k; i++) result[i] = heap.poll();
+        return result;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+nums=[1,1,1,2,2,3], k=2
+
+① 频率: {1:3, 2:2, 3:1}
+② 堆（按频率，堆顶最小）:
+   key=1: offer → [1]  size=1≤2
+   key=2: offer → [2,1]  size=2≤2
+   key=3: offer → [3,2,1]  size=3>2 → poll 踢 3(频率1) → [1,2]
+③ 倒出: [1,2] ✅
+```
+
+## 先加再踢的技巧
+`heap.offer(key)` 先塞进去，`if (size > k) poll()` 塞多了就踢频率最低的。
+比 215 的"判断要不要加"写法更省事，效果一样：堆里永远只留频率前 k 高。
+
+## 比较器 (a,b) -> freq.get(a) - freq.get(b)
+堆里存的是"数字"，比较器用 freq.get(数字) 查它的频率来排序。
+这是最小堆：堆顶 = 频率最低的。
+
+## 关键词触发 / Triggers
+"前K高频" / "出现次数最多" → 频率统计 HashMap + 最小堆留 k 个
 
 贪心 / Greedy
 
