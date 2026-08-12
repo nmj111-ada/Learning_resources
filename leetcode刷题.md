@@ -474,6 +474,139 @@ class Solution {
 ## 关键词触发 / Triggers
 "字符串解码" / "k[字符串]" / "嵌套括号" → 双栈（数字栈 + 字符串栈）
 
+4. 739. Daily Temperatures / 每日温度
+**难度**: Medium / 中等 | **标签**: Array, Stack, Monotonic Stack / 数组, 栈, 单调栈
+
+## 原题 / Original Problem
+Given an array of integers `temperatures` representing daily temperatures, return an array `answer` such that `answer[i]` is the number of days you have to wait after the i-th day to get a warmer temperature.
+
+给定一个整数数组 temperatures，返回数组 answer，answer[i] 是第 i 天之后几天会出现更高的温度。之后不升高则用 0。
+
+**示例**: [73,74,75,71,69,72,76,73] → [1,1,4,2,1,1,0,0]
+
+## 代码 / Code（单调栈）
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] answer = new int[n];
+        Stack<Integer> stack = new Stack<>();  // 存下标！
+        for (int i = 0; i < n; i++) {
+            // 新温度比栈顶温度高 → 栈顶找到答案了
+            while (!stack.isEmpty() && temperatures[i] > temperatures[stack.peek()]) {
+                int prev = stack.pop();
+                answer[prev] = i - prev;
+            }
+            stack.push(i);  // 当前天入栈
+        }
+        return answer;  // 栈里剩下的永远等不到更高温 → 保持0
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+[73,74,75,71,69,72,76,73]
+
+i=0(73): 栈空 → 压0 → [0]
+i=1(74): 74>73 → 弹0, answer[0]=1 → 压1 → [1]
+i=2(75): 75>74 → 弹1, answer[1]=1 → 压2 → [2]
+i=3(71): 71<75 → 压3 → [2,3]
+i=4(69): 69<71 → 压4 → [2,3,4]
+i=5(72): 72>69 → 弹4, answer[4]=1
+          72>71 → 弹3, answer[3]=2
+          72<75 → 停 → 压5 → [2,5]
+i=6(76): 76>72 → 弹5, answer[5]=1
+          76>75 → 弹2, answer[2]=4
+          压6 → [6]
+i=7(73): 73<76 → 压7 → [6,7]
+
+answer = [1,1,4,2,1,1,0,0] ✅
+```
+
+## 为什么栈里存下标不是温度？
+answer 要记录"几天后"（i - prev），存下标才能算出距离。
+
+## 单调栈三要素
+- 栈内温度从底到顶递减（存下标，比温度用 temperatures[peek]）
+- 新温度 > 栈顶 → 弹栈并算答案
+- 栈里剩下的 → 永远等不到更高温 → 0
+
+## 关键词触发 / Triggers
+"下一个更高" / "几天后升温" → 单调栈（存下标）
+
+5. 84. Largest Rectangle in Histogram / 柱状图中最大的矩形 ❌ 做错过
+**难度**: Hard / 困难 | **标签**: Array, Stack, Monotonic Stack / 数组, 栈, 单调栈
+
+## 原题 / Original Problem
+Given an array of integers `heights` representing the histogram's bar height where the width of each bar is 1, return the area of the largest rectangle in the histogram.
+
+给定 n 个非负整数表示柱状图中各个柱子的高度，宽度为 1。求柱状图中能够勾勒出的矩形最大面积。
+
+**示例**: [2,1,5,6,2,3] → 10（高度5×宽度2）
+
+## 代码 / Code（单调栈）
+```java
+class Solution {
+    public int largestRectangleArea(int[] heights) {
+        Stack<Integer> stack = new Stack<>();
+        int maxArea = 0;
+        for (int i = 0; i < heights.length; i++) {
+            while (!stack.isEmpty() && heights[i] < heights[stack.peek()]) {
+                int h = heights[stack.pop()];
+                int left = stack.isEmpty() ? -1 : stack.peek();
+                int width = i - left - 1;
+                maxArea = Math.max(maxArea, h * width);
+            }
+            stack.push(i);
+        }
+        while (!stack.isEmpty()) {
+            int h = heights[stack.pop()];
+            int left = stack.isEmpty() ? -1 : stack.peek();
+            int width = heights.length - left - 1;
+            maxArea = Math.max(maxArea, h * width);
+        }
+        return maxArea;
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+[2,1,5,6,2,3]
+
+i=1(1): 1<2 → 弹0: 高2, 左=-1, 右=1 → 宽1, 面积2
+i=4(2): 2<6 → 弹3: 高6, 左=2, 右=4 → 宽1, 面积6
+         2<5 → 弹2: 高5, 左=1, 右=4 → 宽2, 面积10 ← 最大！
+结束栈剩[1,4,5]:
+  弹5: 高3, 左=4, 右=6 → 宽1, 面积3
+  弹4: 高2, 左=1, 右=6 → 宽4, 面积8
+  弹1: 高1, 左=-1, 右=6 → 宽6, 面积6
+
+最大 = 10 ✅
+```
+
+## 核心机制
+每个柱子当高度，向左右扩展到第一个更矮的柱子：
+- 出栈时左右边界都确定：左 = 新栈顶（或-1），右 = 当前 i（或数组长度）
+- 宽度 = 右 - 左 - 1，面积 = 高度 × 宽度
+- 栈内高度递增，遇到更矮的柱子就弹栈算面积
+
+## 和每日温度的区别
+| | 每日温度 | 柱状图矩形 |
+|---|---|---|
+| 找 | 右边第一个更高 | 左右第一个更矮 |
+| 弹栈条件 | 新温度 > 栈顶 | 新高度 < 栈顶 |
+| 出栈算 | 距离 | 面积（左边界+右边界）|
+
+## 我犯的错 / My Mistakes
+- `for (int i : heights)` 遍历的是值不是下标 → `heights[i]` 越界 💥
+- 弹栈用 if 不是 while → 只弹一个，漏掉连续弹出
+- 栈空时左边界要取 -1（不能用 peek 会报错）
+
+## 关键词触发 / Triggers
+"最大矩形面积" / "柱状图" → 单调递增栈（弹栈时左右边界确定）
+
 堆 / Heap
 
 1. 215. Kth Largest Element in an Array / 数组中的第 K 个最大元素
