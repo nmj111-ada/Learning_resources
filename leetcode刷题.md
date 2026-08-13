@@ -1,7 +1,6 @@
-数组
 # 数组 / Array
 
-# 1. 53. Maximum Subarray / 最大子数组和
+1. 53. Maximum Subarray / 最大子数组和
 **难度**: Medium / 中等 | **标签**: Array, DP / 数组, 动态规划
 
 ## 原题 / Original Problem
@@ -292,7 +291,7 @@ left=1, right=1 → 退出 → return 1 ✅
 ## 关键词触发 / Triggers
 "排序数组" / "O(log n)" / "插入位置" → 标准二分模板
 
-栈 / Stack
+# 栈 / Stack
 
 1. 20. Valid Parentheses / 有效的括号
 **难度**: Easy / 简单 | **标签**: Stack, String / 栈, 字符串
@@ -607,7 +606,7 @@ i=4(2): 2<6 → 弹3: 高6, 左=2, 右=4 → 宽1, 面积6
 ## 关键词触发 / Triggers
 "最大矩形面积" / "柱状图" → 单调递增栈（弹栈时左右边界确定）
 
-堆 / Heap
+# 堆 / Heap
 
 1. 215. Kth Largest Element in an Array / 数组中的第 K 个最大元素
 **难度**: Medium / 中等 | **标签**: Array, Heap, Divide and Conquer / 数组, 堆, 分治
@@ -999,7 +998,7 @@ findMedian：O(1)
 
 看到"动态加入 + 查询中间值"，不要想着每次排序 → 两个堆维护中间边界。
 
-贪心 / Greedy
+# 贪心 / Greedy
 
 1. 121. Best Time to Buy and Sell Stock / 买卖股票的最佳时机
 **难度**: Easy / 简单 | **标签**: Array, DP, Greedy / 数组, 动态规划, 贪心
@@ -1046,7 +1045,7 @@ prices = [7, 1, 5, 3, 6, 4]
 ## 关键词触发 / Triggers
 "买卖股票" / "最大利润" / "单次交易" → 维护历史最低价 + 每次算利润
 
-动态规划 / DP
+# 动态规划 / DP
 
 1. 70. Climbing Stairs / 爬楼梯
 **难度**: Easy / 简单 | **标签**: Math, DP / 数学, 动态规划
@@ -1099,7 +1098,7 @@ n=45 时超时！DP 把每个中间结果存起来只算一次，空间换时间
 ## 关键词触发 / Triggers
 "爬楼梯" / "斐波那契" / "1或2步" → dp[i] = dp[i-1] + dp[i-2]
 
-子串 / Subarray
+# 子串 / Subarray
 
 1. 560. Subarray Sum Equals K / 和为 K 的子数组
 **难度**: Medium / 中等 | **标签**: Array, Hash Table, Prefix Sum / 数组, 哈希表, 前缀和
@@ -1153,7 +1152,7 @@ class Solution {
 ## 易错点
 - 先查再放（k=0 时防把自己算进去）
 - map.put(0, 1) 不能忘
-哈希表 / Hash Table
+# 哈希表 / Hash Table
 1. 1. Two Sum / 两数之和（简单）❌ 做错过
 **难度**: Easy / 简单 | **标签**: Array, Hash Table / 数组, 哈希表 | 日期: 2026-07-18
 
@@ -1320,7 +1319,7 @@ longest = 4 ✅
 "最长连续序列" / "连续数字" / "O(n)" → HashSet + 只从开头数
 
 
-链表 / Linked List
+# 链表 / Linked List
 
 1. 160. Intersection of Two Linked Lists / 相交链表
 **难度**: Easy / 简单 | **标签**: Hash Table, Linked List, Two Pointers / 哈希表, 链表, 双指针
@@ -2164,7 +2163,7 @@ mergeTwoLists 每次比较两个链表当前头的 val，取小的接上，递�
 "合并K个有序链表" → 分治归并（两两合并） 或 优先队列（k个头进堆）
 
 
-二叉树 / Binary Tree
+# 二叉树 / Binary Tree
 
 1. 94. Binary Tree Inorder Traversal / 二叉树的中序遍历
 **难度**: Easy / 简单 | **标签**: Stack, Tree, DFS / 栈, 树, 深度优先
@@ -2554,7 +2553,7 @@ class Solution {
 "有序数组转BST" / "平衡" → 递归取中间 + 分治
 
 
-图论 / Graph
+# 图论 / Graph
 
 1. 200. Number of Islands / 岛屿数量
 **难度**: Medium / 中等 | **标签**: Array, DFS, BFS, Matrix / 数组, 深度优先, 广度优先, 矩阵
@@ -2697,7 +2696,7 @@ class Solution {
 "先修课" / "课程表" / "循环依赖" → 三色DFS判环 或 拓扑排序
 
 
-回溯 / Backtracking
+# 回溯 / Backtracking
 
 1. 46. Permutations / 全排列
 **难度**: Medium / 中等 | **标签**: Array, Backtracking / 数组, 回溯
@@ -2755,7 +2754,7 @@ nums=[1,2,3]
 "全排列" / "所有组合" / "互不相同" → 回溯 + used 标记
 
 
-双指针问题 / Two Pointers
+# 双指针问题 / Two Pointers
 
 1. 283. Move Zeroes / 移动零
 **难度**: Easy / 简单 | **标签**: Array, Two Pointers / 数组, 双指针
@@ -2951,7 +2950,7 @@ i=3(0): left=4(1), right=5(2): 1+2=3 ≠ 0 → 结束
 ## 关键词触发 / Triggers
 "三数之和" / "和为0的三元组" / "不重复" → 排序 + 固定一个 + 双指针 + 去重
 
-滑动窗口 / Sliding Window
+# 滑动窗口 / Sliding Window
 
 1. 3. Longest Substring Without Repeating Characters / 无重复字符的最长子串
 **难度**: Medium / 中等 | **标签**: Hash Table, String, Sliding Window / 哈希表, 字符串, 滑动窗口
@@ -3040,7 +3039,7 @@ i - p.length() + 1（i 是当前窗口右边界下标）
 ## 关键词触发 / Triggers
 "字母异位词子串" / "找所有起始索引" / "定长窗口" → int[26] 计数 + 滑动窗口
 
-每日刷题 / Daily Practice
+# 每日刷题 / Daily Practice
 
 1. 1979. Find Greatest Common Divisor of Array / 找出数组的最大公约数
 **难度**: Easy / 简单 | **标签**: Array, Math / 数组, 数学
