@@ -717,6 +717,288 @@ nums=[1,1,1,2,2,3], k=2
 ## 关键词触发 / Triggers
 "前K高频" / "出现次数最多" → 频率统计 HashMap + 最小堆留 k 个
 
+3. 295. Find Median from Data Stream / 数据流的中位数
+**难度**: Hard / 困难 | **标签**: Heap, Design, Data Stream / 堆, 设计, 数据流
+
+## 原题 / Original Problem
+Design a data structure that supports adding integers from a data stream and finding the median of all elements seen so far.
+
+给你一个数据流，每次加入一个整数 num，并且随时可以查询目前所有数字的中位数。
+
+**示例**: 1 → 2 → findMedian = 1.5 → 3 → findMedian = 2.0
+
+## 代码 / Code（大根堆 + 小根堆）
+```java
+class MedianFinder {
+    PriorityQueue<Integer> left;   // 大根堆：较小的一半
+    PriorityQueue<Integer> right;  // 小根堆：较大的一半
+
+    public MedianFinder() {
+        left = new PriorityQueue<>((a, b) -> b - a);
+        right = new PriorityQueue<>();
+    }
+
+    public void addNum(int num) {
+        // num 应该属于较小的一半
+        if (left.isEmpty() || num <= left.peek()) {
+            left.add(num);
+        } else {
+            right.add(num);
+        }
+
+        // left 最多只能比 right 多 1 个
+        if (left.size() > right.size() + 1) {
+            int x = left.poll();
+            right.add(x);
+        }
+
+        // right 不能比 left 多
+        if (right.size() > left.size()) {
+            int y = right.poll();
+            left.add(y);
+        }
+    }
+
+    public double findMedian() {
+        if (left.size() == right.size()) {
+            return (left.peek() + right.peek()) / 2.0;
+        }
+
+        if (left.size() == right.size() + 1) {
+            return left.peek();
+        }
+
+        return 0.0;   // 正常情况下不会执行，只是满足 Java 返回值要求
+    }
+}
+```
+
+## 过程追踪 / Walkthrough
+```
+依次加入：1, 2, 3, 4
+
+add 1:
+left=[1]        right=[]
+                ↑
+             1个 : 0个
+
+add 2:
+先判断 2 > left.peek(1) → 放 right
+left=[1]        right=[2]
+
+add 3:
+3 > left.peek(1) → 放 right
+left=[1]        right=[2,3]
+
+right 多 1 个 → right.poll()=2 移到 left
+left=[2,1]      right=[3]
+
+add 4:
+4 > left.peek(2) → 放 right
+left=[2,1]      right=[3,4]
+
+最终：
+left  = [1,2]   ← 较小的一半，大根堆，堆顶2
+right = [3,4]   ← 较大的一半，小根堆，堆顶3
+
+findMedian:
+(2+3)/2 = 2.5 ✅
+```
+
+## 核心思路：两个堆维护"前一半 + 后一半"
+不能每次 findMedian() 都重新排序。
+
+如果每次都排序：
+- addNum：O(1)
+- findMedian：O(n log n)
+
+调用次数达到 5 * 10^4 时会很慢。
+
+真正只需要知道中间的一个或两个数，所以把所有数字分成两半：
+
+```
+         较小的一半       较大的一半
+
+             left | right
+                  |
+        [1,2,3]   |   [5,7,9]
+              ↑         ↑
+           最大值      最小值
+```
+
+因此：
+- left 用大根堆 → left.peek() = 较小一半的最大值
+- right 用小根堆 → right.peek() = 较大一半的最小值
+
+只要保证 left.peek() <= right.peek()，那么两个堆就相当于把整个有序数组从中间切开。
+
+## 两个堆为什么正好能找到中位数？
+例如：
+
+[1,2,3,4]
+
+分成：
+
+left  = [1,2]
+right = [3,4]
+
+中间两个数就是：
+
+left.peek()  = 2
+right.peek() = 3
+
+所以：
+
+median = (2+3)/2
+
+如果有奇数个：
+
+[1,2,3,4,5]
+
+分成：
+
+left  = [1,2,3]
+right = [4,5]
+
+此时：
+
+left.peek() = 3
+
+就是中位数。
+
+## 为什么数据还没全部输入，也可以维护"前一半 / 后一半"？
+这里的"前一半"不是原数组的位置，而是指：
+
+按照数字大小排序后，较小的那一半。
+
+数据是一个一个来的没关系。
+
+每加入一个新数字，就重新把它放到应该属于的那一半，然后调整两个堆的数量。
+
+例如：
+
+已有：
+left=[1,3]
+right=[7,9]
+
+加入 4：
+
+4 <= left.peek(3) ? 否
+→ 放 right
+
+left=[1,3]
+right=[4,7,9]
+
+此时右边多了一个：
+
+right.size() > left.size()
+
+把 right 最小值 4 移回 left：
+
+left=[1,3,4]
+right=[7,9]
+
+又恢复成：
+
+较小的一半 | 较大的一半
+
+所以不需要提前知道完整数组。
+
+## 两个堆必须维持的规则
+规则 1：大小关系
+left.peek() <= right.peek()
+
+left 的最大值不能比 right 的最小值大。
+
+否则就不是"前一半 + 后一半"了。
+
+规则 2：数量平衡
+
+规定：
+
+left.size() == right.size()
+
+或者：
+
+left.size() == right.size() + 1
+
+也就是：
+
+left 永远和 right 一样多，或者比 right 多一个。
+
+因此：
+
+偶数个元素：
+left = n/2
+right = n/2
+
+奇数个元素：
+left = n/2 + 1
+right = n/2
+
+这样中位数的位置永远固定在：
+
+left.peek()
+
+或者：
+
+(left.peek() + right.peek()) / 2
+
+## 为什么 left 要用大根堆，right 要用小根堆？
+因为我们需要：
+
+较小的一半 → 找最大值
+较大的一半 → 找最小值
+
+也就是：
+
+left：大根堆 → 最大值在堆顶
+right：小根堆 → 最小值在堆顶
+
+这样不用排序，就能直接拿到整个数据集的"中间边界"。
+
+## 复杂度
+每次 addNum()：
+
+堆插入 / 删除 → O(log n)
+
+每次 findMedian()：
+
+只取堆顶 → O(1)
+
+总复杂度：
+
+addNum：O(log n)
+findMedian：O(1)
+空间：O(n)
+
+比"每次查询重新排序"的 findMedian：O(n log n) 高效得多。
+
+## Java 语法知识点
+- PriorityQueue<Integer>() 默认是小根堆
+- 大根堆：new PriorityQueue<>((a, b) -> b - a);
+- peek()：查看堆顶，不删除
+- poll()：删除并返回堆顶
+- add() / offer()：加入元素
+- 空堆 peek() 返回 null，所以第一次加入时可以用 left.isEmpty() 判断
+- PriorityQueue 没有 push() / pop()，这是 Stack 常见的方法，堆要用 add/offer 和 poll
+
+## 易错点 / My Mistakes
+- left.size() == right.size() + 1; 不是"设置条件"，只是计算一个 boolean，不会自动让两个堆平衡。
+- 构造函数里不能重新写 `PriorityQueue<Integer> left;` `PriorityQueue<Integer> right;`，否则会变成新的局部变量，把成员变量遮住。
+- PriorityQueue 用 poll() 删除堆顶，不是 pop()。
+- findMedian() 里 `(left.peek() + right.peek()) / 2` 是整数除法，例如 (1+2)/2 = 1，必须写成 `/ 2.0`。
+- findMedian() 不需要单独判断两个堆都为空，因为题目保证调用前至少有一个元素。
+- left 不只是"存比较小的数字"，更重要的是它代表排序后前一半；right 代表排序后后一半。
+- 平衡不是为了让两个堆永远一样大，而是 left.size() == right.size() 或 left.size() == right.size() + 1。
+
+## 关键词触发 / Triggers
+"数据流中位数" / "动态求中位数" / "不断加入数字 + 随时查询中位数" → 大根堆 + 小根堆
+
+看到"前一半 + 后一半"，第一反应：前一半 → 大根堆，后一半 → 小根堆。
+
+看到"动态加入 + 查询中间值"，不要想着每次排序 → 两个堆维护中间边界。
+
 贪心 / Greedy
 
 1. 121. Best Time to Buy and Sell Stock / 买卖股票的最佳时机
