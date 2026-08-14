@@ -291,6 +291,194 @@ left=1, right=1 → 退出 → return 1 ✅
 ## 关键词触发 / Triggers
 "排序数组" / "O(log n)" / "插入位置" → 标准二分模板
 
+# 二分查找 / Binary Search
+
+1. 74. Search a 2D Matrix / 搜索二维矩阵
+**难度**: Medium / 中等 | **标签**: Array, Binary Search, Matrix / 数组, 二分查找, 矩阵
+
+## 原题 / Original Problem
+
+Write an algorithm that searches for a target value in an `m x n` integer matrix. The algorithm must have `O(log(m*n))` time complexity.
+
+给定一个满足有序条件的 `m x n` 整数矩阵，判断 `target` 是否在矩阵中。
+
+**示例**: `[[1,3,5,7],[10,11,16,20],[23,30,34,60]], target=3 → true`
+
+## 代码 / Code
+
+```java
+class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+
+        int left = 0;
+        int right = m * n - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            int row = mid / n;
+            int col = mid % n;
+
+            int value = matrix[row][col];
+
+            if (value == target) {
+                return true;
+            } else if (value < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        return false;
+    }
+}
+```
+
+## 核心思路：二维数组看成一维有序数组
+
+题目保证：
+
+```text
+每一行从左到右递增
+下一行第一个数 > 上一行最后一个数
+```
+
+所以：
+
+```text
+[1,3,5,7]
+[10,11,16,20]
+[23,30,34,60]
+```
+
+实际上等价于：
+
+```text
+[1,3,5,7,10,11,16,20,23,30,34,60]
+```
+
+可以直接把整个矩阵当成一个长度为 `m*n` 的有序数组做普通二分。
+
+问题只剩：
+
+> 一维下标 `mid` 怎么对应回二维下标？
+
+每行有 `n` 个元素：
+
+```text
+row = mid / n
+col = mid % n
+```
+
+例如：
+
+```text
+mid = 6
+n = 4
+
+row = 6 / 4 = 1
+col = 6 % 4 = 2
+
+matrix[1][2] = 16
+```
+
+## 过程追踪 / Walkthrough
+
+```text
+matrix =
+[1,3,5,7]
+[10,11,16,20]
+[23,30,34,60]
+
+target = 13
+
+总元素 = 3×4 = 12
+left=0, right=11
+
+第1轮:
+mid=5
+row=1
+col=1
+matrix[1][1]=11
+
+11 < 13
+→ left=6
+
+第2轮:
+mid=8
+row=2
+col=0
+matrix[2][0]=23
+
+23 > 13
+→ right=7
+
+第3轮:
+mid=6
+row=1
+col=2
+matrix[1][2]=16
+
+16 > 13
+→ right=5
+
+left=6 > right=5
+→ 找不到
+→ false
+```
+
+## 为什么必须整体二分？
+
+如果一行一行搜索，最坏需要检查很多行。
+
+题目要求：
+
+```text
+O(log(m*n))
+```
+
+所以要把整个矩阵当作一个整体进行二分。
+
+本质：
+
+```text
+二维矩阵
+↓
+逻辑上一维有序数组
+↓
+普通二分查找
+```
+
+## 复杂度
+
+```text
+时间：O(log(m*n))
+空间：O(1)
+```
+
+## 易错点 / My Mistakes
+
+* `m = matrix.length` → 行数
+* `n = matrix[0].length` → 列数
+* `right = m*n-1`，不是 `m*n`
+* `mid` 是一维下标，不能直接写 `matrix[mid]`
+* 一维转二维必须记住：
+
+```java
+row = mid / n;
+col = mid % n;
+```
+
+* `col` 是列，不要写成 `clo` 后自己看混
+* 没有必要创建 `ArrayList`，题目传进来的 `matrix` 已经存在
+
+## 关键词触发 / Triggers
+
+"有序二维矩阵" / "O(log(m*n))" / "矩阵整体有序" → **二维转一维 + 二分**
+
 # 栈 / Stack
 
 1. 20. Valid Parentheses / 有效的括号
@@ -1045,6 +1233,217 @@ prices = [7, 1, 5, 3, 6, 4]
 ## 关键词触发 / Triggers
 "买卖股票" / "最大利润" / "单次交易" → 维护历史最低价 + 每次算利润
 
+2. 55. Jump Game / 跳跃游戏
+**难度**: Medium / 中等 | **标签**: Array, Greedy / 数组, 贪心
+
+## 原题 / Original Problem
+
+Given an integer array `nums`, determine if you can reach the last index. Each element represents the maximum jump length at that position.
+
+给定一个非负整数数组 `nums`，你最初位于第一个下标，每个元素表示当前位置最多可以跳跃的长度，判断能否到达最后一个下标。
+
+**示例**: `[2,3,1,1,4] → true`；`[3,2,1,0,4] → false`
+
+## 代码 / Code（贪心）
+
+```java
+class Solution {
+    public boolean canJump(int[] nums) {
+        int maxReach = 0;
+
+        for (int i = 0; i < nums.length - 1; i++) {
+            // 当前下标都到不了，后面更不可能到
+            if (i > maxReach) return false;
+
+            // 更新目前最远能到的位置
+            maxReach = Math.max(maxReach, i + nums[i]);
+
+            // 已经到达终点
+            if (maxReach >= nums.length - 1) return true;
+        }
+
+        return false;
+    }
+}
+```
+
+## 核心思路：只维护"最远能到哪里"
+
+一开始很容易想成：
+
+```text
+当前这个位置能不能直接跳到终点？
+```
+
+其实不需要。
+
+我们只维护：
+
+```java
+int maxReach;
+```
+
+表示：
+
+> **从目前所有可达的位置出发，最远可以到哪个下标。**
+
+遍历到位置 `i` 时：
+
+```java
+maxReach = Math.max(maxReach, i + nums[i]);
+```
+
+如果：
+
+```java
+i > maxReach
+```
+
+说明当前位置本身都到不了，因此后面的所有位置也都到不了。
+
+直接：
+
+```java
+return false;
+```
+
+## 过程追踪 / Walkthrough
+
+```text
+nums=[2,3,1,1,4]
+
+开始：
+maxReach=0
+
+i=0:
+0<=0，可达
+0+2=2
+maxReach=2
+
+i=1:
+1<=2，可达
+1+3=4
+maxReach=4
+
+4 >= 最后下标4
+→ true
+```
+
+失败例子：
+
+```text
+nums=[3,2,1,0,4]
+
+i=0:
+maxReach=max(0,0+3)=3
+
+i=1:
+maxReach=max(3,1+2)=3
+
+i=2:
+maxReach=max(3,2+1)=3
+
+i=3:
+maxReach=max(3,3+0)=3
+
+i=4:
+4 > maxReach
+→ 下标4不可达
+→ false
+```
+
+## 为什么遇到 0 不一定失败？
+
+例如：
+
+```text
+[2,0,1,1,4]
+```
+
+虽然下标 1 是：
+
+```text
+0
+```
+
+但从下标 0 可以直接跳到下标 2。
+
+所以这个 `0` 不在必经路径上。
+
+真正危险的是：
+
+```text
+maxReach
+```
+
+被某个 `0` 卡住以后再也无法扩大。
+
+因此不能简单写：
+
+```java
+if (nums[i] == 0) return false;
+```
+
+## 核心贪心
+
+每次只保留一个信息：
+
+```text
+当前最远可达位置 maxReach
+```
+
+不用记录：
+
+```text
+具体走了哪条路径
+```
+
+因为我们只关心能不能不断扩大可达范围。
+
+## 复杂度
+
+```text
+时间：O(n)
+空间：O(1)
+```
+
+## 易错点 / My Mistakes
+
+* 原先用了双重循环，试图判断每个位置能不能直接到终点，思路太局部。
+* `nums[i] == 0` 不代表一定失败，这个位置可能根本不是必经位置。
+* 必须先判断：
+
+```java
+if (i > maxReach) return false;
+```
+
+否则可能把一个根本到不了的位置当成可以继续跳的位置。
+
+* `maxReach` 表示的是**最远下标**，不是还能跳多少步。
+* 最后一个下标是：
+
+```java
+nums.length - 1
+```
+
+不是 `nums.length`。
+
+## 关键词触发 / Triggers
+
+"能否到达最后" / "每个位置最多跳几步" / "跳跃游戏" → **贪心 + maxReach**
+
+看到这种题不要想：
+
+```text
+"具体怎么跳？"
+```
+
+先想：
+
+```text
+"目前最远能到哪里？"
+```
+
 # 动态规划 / DP
 
 1. 70. Climbing Stairs / 爬楼梯
@@ -1097,6 +1496,542 @@ n=45 时超时！DP 把每个中间结果存起来只算一次，空间换时间
 
 ## 关键词触发 / Triggers
 "爬楼梯" / "斐波那契" / "1或2步" → dp[i] = dp[i-1] + dp[i-2]
+
+2. 118. Pascal's Triangle / 杨辉三角
+**难度**: Easy / 简单 | **标签**: Array, Dynamic Programming / 数组, 动态规划
+
+## 原题 / Original Problem
+
+Given an integer `numRows`, return the first `numRows` of Pascal's triangle.
+
+给定一个非负整数 `numRows`，生成杨辉三角的前 `numRows` 行。
+
+**示例**:
+
+```text
+numRows = 5
+
+[
+ [1],
+ [1,1],
+ [1,2,1],
+ [1,3,3,1],
+ [1,4,6,4,1]
+]
+```
+
+## 代码 / Code
+
+```java
+class Solution {
+    public List<List<Integer>> generate(int numRows) {
+        List<List<Integer>> result = new ArrayList<>();
+        List<Integer> prev = new ArrayList<>();
+
+        for (int i = 0; i < numRows; i++) {
+            List<Integer> cur = new ArrayList<>();
+
+            for (int j = 0; j <= i; j++) {
+                if (j == 0 || j == i) {
+                    cur.add(1);
+                } else {
+                    cur.add(prev.get(j - 1) + prev.get(j));
+                }
+            }
+
+            result.add(cur);
+            prev = cur;
+        }
+
+        return result;
+    }
+}
+```
+
+## 核心思路：当前行由上一行推出来
+
+杨辉三角的规律：
+
+```text
+        1
+       1 1
+      1 2 1
+     1 3 3 1
+```
+
+每一行：
+
+```text
+最左边 = 1
+最右边 = 1
+中间 = 左上 + 右上
+```
+
+例如上一行：
+
+```text
+[1,3,3,1]
+```
+
+下一行：
+
+```text
+1 4 6 4 1
+```
+
+中间部分：
+
+```text
+4 = 1 + 3
+6 = 3 + 3
+4 = 3 + 1
+```
+
+所以：
+
+```java
+cur.add(prev.get(j - 1) + prev.get(j));
+```
+
+## 过程追踪 / Walkthrough
+
+```text
+开始：
+prev=[]
+
+i=0:
+cur=[]
+j=0 → 边界 → add(1)
+
+cur=[1]
+result=[[1]]
+prev=cur
+
+i=1:
+cur=[]
+j=0 → add(1)
+j=1 → add(1)
+
+cur=[1,1]
+result=[[1],[1,1]]
+prev=cur
+
+i=2:
+j=0 → 1
+j=1 → prev[0]+prev[1] = 1+1 = 2
+j=2 → 1
+
+cur=[1,2,1]
+
+i=3:
+j=0 → 1
+j=1 → 1+2 = 3
+j=2 → 2+1 = 3
+j=3 → 1
+
+cur=[1,3,3,1]
+```
+
+## 为什么 `cur` 放循环里面，`prev` 放循环外？
+
+这是这题非常重要的变量作用域。
+
+```text
+cur = 当前这一行
+prev = 上一行
+```
+
+每进入下一轮：
+
+```text
+新的 cur
+```
+
+必须重新创建。
+
+所以：
+
+```java
+for (...) {
+    List<Integer> cur = new ArrayList<>();
+}
+```
+
+而 `prev` 必须把上一轮的结果带到下一轮：
+
+```java
+List<Integer> prev = new ArrayList<>();
+
+for (...) {
+    ...
+    prev = cur;
+}
+```
+
+如果把 `prev` 放进循环：
+
+```java
+for (...) {
+    List<Integer> prev = new ArrayList<>();
+}
+```
+
+每一轮都会重新变成空列表，就无法利用上一行。
+
+## 为什么 `ArrayList` 用 `add()` 而不是 `cur[j]`？
+
+`cur` 是：
+
+```java
+List<Integer>
+```
+
+不是数组。
+
+所以：
+
+```text
+取值：get(j)
+修改已有位置：set(j,x)
+末尾添加：add(x)
+```
+
+这里 `cur` 一开始是空的，我们是在从左到右**创建这一行**，所以使用：
+
+```java
+cur.add(...)
+```
+
+## 复杂度
+
+一共有：
+
+```text
+1 + 2 + 3 + ... + numRows
+```
+
+个元素。
+
+所以：
+
+```text
+时间：O(numRows²)
+空间：O(numRows²)
+```
+
+结果本身就要保存所有元素，因此 `O(numRows²)` 是合理的。
+
+## 易错点 / My Mistakes
+
+* `cur` 是当前行，所以放在外层循环里面，每一轮重新创建。
+* `prev` 是上一行，所以放在外层循环外，跨轮次保存。
+* 第一行没有 `prev`，但因为 `j=0` 同时满足左右边界条件，所以直接加入 `1`，不需要额外特判。
+* `List<Integer>` 不能写：
+
+```java
+cur[j]
+```
+
+必须用 `add/get/set`。
+
+* 中间元素：
+
+```java
+prev.get(j - 1) + prev.get(j)
+```
+
+* 每行结束后：
+
+```java
+result.add(cur);
+prev = cur;
+```
+
+## 关键词触发 / Triggers
+
+"杨辉三角" / "当前行由上一行计算" / "左上 + 右上" → **逐行构造 + 保存上一行**
+
+看到：
+
+```text
+当前结果依赖上一轮结果
+```
+
+第一反应：
+
+```text
+cur  = 当前
+prev = 上一轮
+```
+
+# 多维动态规划 / Multi-dimensional DP
+
+1. 62. Unique Paths / 不同路径
+**难度**: Medium / 中等 | **标签**: Math, DP, Grid / 数学, 动态规划, 网格
+
+## 原题 / Original Problem
+
+A robot is located at the top-left corner of an `m x n` grid and can only move down or right. Return the number of unique paths to reach the bottom-right corner.
+
+机器人位于 `m x n` 网格左上角，每次只能向右或向下移动，求到达右下角的不同路径数量。
+
+**示例**: `m=3, n=3 → 6`
+
+## 代码 / Code
+
+```java
+class Solution {
+    public int uniquePaths(int m, int n) {
+        int[][] dp = new int[m][n];
+
+        // 第一行：只能一直向右
+        for (int j = 0; j < n; j++) {
+            dp[0][j] = 1;
+        }
+
+        // 第一列：只能一直向下
+        for (int i = 0; i < m; i++) {
+            dp[i][0] = 1;
+        }
+
+        // 中间区域
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+            }
+        }
+
+        return dp[m - 1][n - 1];
+    }
+}
+```
+
+## dp[i][j] 是什么意思？
+
+```text
+dp[i][j] =
+从左上角走到 (i,j) 的不同路径数量
+```
+
+机器人进入 `(i,j)` 时，最后一步只有两种可能：
+
+```text
+上面 ↓
+```
+
+或者：
+
+```text
+左边 →
+```
+
+所以：
+
+```java
+dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+```
+
+## 核心思路：上面 + 左边
+
+例如：
+
+```text
+1  1  1
+1  2  3
+1  3  6
+```
+
+右下角：
+
+```text
+6
+```
+
+就是：
+
+```text
+上方 3 + 左方 3
+```
+
+所以答案为：
+
+```text
+6
+```
+
+## 为什么第一行和第一列都是 1？
+
+第一行：
+
+```text
+→ → → → →
+```
+
+只有一种走法：一直向右。
+
+第一列：
+
+```text
+↓
+↓
+↓
+```
+
+只有一种走法：一直向下。
+
+因此：
+
+```text
+第一行全部 = 1
+第一列全部 = 1
+```
+
+## 过程追踪 / Walkthrough
+
+```text
+m=3,n=3
+
+初始化：
+
+1 1 1
+1 ? ?
+1 ? ?
+
+计算 [1][1]:
+上1 + 左1 = 2
+
+1 1 1
+1 2 ?
+1 ? ?
+
+计算 [1][2]:
+上1 + 左2 = 3
+
+1 1 1
+1 2 3
+1 ? ?
+
+计算 [2][1]:
+上1 + 左2 = 3
+
+计算 [2][2]:
+上3 + 左3 = 6
+
+最终：
+
+1 1 1
+1 2 3
+1 3 6
+
+答案 = 6 ✅
+```
+
+## 为什么这是多维 DP？
+
+因为这里的状态不是：
+
+```text
+dp[i]
+```
+
+而是：
+
+```text
+dp[i][j]
+```
+
+需要同时记录：
+
+```text
+第 i 行
+第 j 列
+```
+
+所以是一个二维状态表。
+
+同时每个状态依赖：
+
+```text
+dp[i-1][j]
+dp[i][j-1]
+```
+
+形成从左上到右下的二维状态转移。
+
+## 和杨辉三角的关系
+
+两道题的状态转移非常像：
+
+```text
+杨辉三角：
+当前 = 左上 + 右上
+
+不同路径：
+当前 = 上 + 左
+```
+
+共同特点：
+
+```text
+当前状态
+    ↓
+依赖已经计算过的前面状态
+    ↓
+逐行 / 逐格填表
+```
+
+## 复杂度
+
+```text
+时间：O(m*n)
+空间：O(m*n)
+```
+
+## 易错点 / My Mistakes
+
+* `m` 表示行数，`n` 表示列数。
+* 第一行和第一列需要初始化为 `1`。
+* 中间区域从：
+
+```java
+i=1, j=1
+```
+
+开始。
+
+* 状态转移：
+
+```java
+dp[i][j] = dp[i-1][j] + dp[i][j-1];
+```
+
+* 最后一个格子的下标是：
+
+```java
+dp[m-1][n-1]
+```
+
+不是 `dp[m][n]`。
+
+* 第一行、第一列的初始化应该和中间状态转移分开，否则容易重复计算。
+
+## 关键词触发 / Triggers
+
+"网格" / "只能向右或向下" / "有多少条路径" → **二维 DP**
+
+看到：
+
+```text
+一个格子的答案
+=
+上面的答案 + 左边的答案
+```
+
+第一反应：
+
+```text
+dp[i][j] = dp[i-1][j] + dp[i][j-1]
+```
 
 # 子串 / Subarray
 
