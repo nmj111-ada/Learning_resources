@@ -479,6 +479,251 @@ col = mid % n;
 
 "有序二维矩阵" / "O(log(m*n))" / "矩阵整体有序" → **二维转一维 + 二分**
 
+7. 41. First Missing Positive / 缺失的第一个正数
+       **难度**: Hard / 困难 | **标签**: Array, Hash Table, In-place, Cyclic Sort / 数组, 哈希表, 原地, 原地哈希
+
+## 原题 / Original Problem
+
+Given an unsorted integer array `nums`, return the smallest positive integer that does not appear in `nums`. The algorithm must run in `O(n)` time and use `O(1)` extra space.
+
+给定一个未排序的整数数组 nums，请你找出其中没有出现的最小的正整数。要求时间复杂度 `O(n)`，并且只使用常数级别额外空间。
+
+**示例**:
+
+* `[1,2,0] → 3`
+* `[3,4,-1,1] → 2`
+* `[7,8,9,11,12] → 1`
+
+## 代码 / Code（原地归位）
+
+```java
+class Solution {
+    public int firstMissingPositive(int[] nums) {
+        for (int i = 0; i < nums.length; i++) {
+            while (nums[i] >= 1
+                    && nums[i] <= nums.length
+                    && nums[i] != nums[nums[i] - 1]) {
+
+                int x = nums[i];
+
+                int temp = nums[x - 1];
+                nums[x - 1] = nums[i];
+                nums[i] = temp;
+            }
+        }
+
+        for (int i = 0; i < nums.length; i++) {
+            if (nums[i] != i + 1) {
+                return i + 1;
+            }
+        }
+
+        return nums.length + 1;
+    }
+}
+```
+
+## 核心思路：数字归位
+
+答案只可能在：
+
+```text
+1 ~ n+1
+```
+
+因为数组长度为 `n`。
+
+所以只需要关心：
+
+```text
+1 <= nums[i] <= n
+```
+
+对于一个数字 `x`：
+
+```text
+x 应该放在下标 x-1
+```
+
+例如：
+
+```text
+1 → nums[0]
+2 → nums[1]
+3 → nums[2]
+...
+n → nums[n-1]
+```
+
+遍历数组时，如果当前数字满足：
+
+```text
+1 <= nums[i] <= n
+```
+
+而且它还没有在正确位置：
+
+```text
+nums[i] != nums[nums[i]-1]
+```
+
+就把它交换到应该去的位置。
+
+交换以后，`nums[i]` 会换成一个新数字，所以继续 `while`，直到当前位置不能再归位。
+
+## 过程追踪 / Walkthrough
+
+```text
+nums = [3,4,-1,1]
+
+i=0:
+nums[0]=3
+3 应该去下标2
+交换 → [-1,4,3,1]
+
+nums[0]=-1
+不在 1~n 中 → 停
+
+i=1:
+nums[1]=4
+4 应该去下标3
+交换 → [-1,1,3,4]
+
+nums[1]=1
+1 应该去下标0
+交换 → [1,-1,3,4]
+
+nums[1]=-1
+停止
+
+最终：
+[1,-1,3,4]
+
+检查：
+i=0 → nums[0]=1 ✓
+i=1 → nums[1]=-1 ≠ 2 ✗
+
+答案 = 2 ✅
+```
+
+## 为什么不能“找1，再找2，再找3”？
+
+这个思路本身是对的，但如果每找一个数字都重新遍历整个数组：
+
+```text
+找1 → O(n)
+找2 → O(n)
+找3 → O(n)
+...
+```
+
+最坏：
+
+```text
+O(n) × O(n) = O(n²)
+```
+
+所以不能反复扫描。
+
+原地归位后：
+
+```text
+下标 i 对应数字 i+1
+```
+
+只需要最后扫描一次即可知道第一个缺失的正整数。
+
+## 为什么 while 里面很多次交换还是 O(n)？
+
+虽然代码看起来是：
+
+```text
+for
+ └── while
+```
+
+但每次交换都会让一个数字进入它应该在的位置。
+
+整个数组中的数字最多被归位有限次，所以总交换次数是 `O(n)`。
+
+因此：
+
+```text
+总时间 = O(n)
+额外空间 = O(1)
+```
+
+## 为什么需要 nums[i] != nums[nums[i]-1]？
+
+防止重复数字导致死循环。
+
+例如：
+
+```text
+nums = [1,1]
+```
+
+第二个 `1` 也想去下标 `0`。
+
+如果没有这个条件，就可能不断交换：
+
+```text
+1 ↔ 1
+```
+
+所以：
+
+```text
+nums[i] == nums[nums[i]-1]
+```
+
+说明目标位置已经有相同数字，不需要再交换。
+
+## 易错点 / My Mistakes
+
+* 一开始想用额外 `result` 数组保存归位后的结果，但题目要求 `O(1)` 额外空间，不能开 `O(n)` 数组。
+* `nums[x-1] = x` 不是交换，会把原来目标位置的数字覆盖掉。
+* 必须真正交换：
+
+```java
+int temp = nums[x - 1];
+nums[x - 1] = nums[i];
+nums[i] = temp;
+```
+
+* `while` 不是固定只执行一次，一次交换后当前位置可能出现新的数字，需要继续归位。
+* 找答案时不能写：
+
+```java
+else return nums.length;
+```
+
+因为当前位置正确只代表当前正确，后面仍然需要继续检查。
+
+* `Math.min()` 不是找“最小缺失正数”，因为答案不是数组中的最小值，而是第一个缺失的正整数。
+* 如果 `1~n` 全部存在，答案才是 `n+1`。
+
+## 关键词触发 / Triggers
+
+"最小缺失正数" / "O(n)" / "O(1)空间" → **原地哈希 / 数字归位**
+
+看到：
+
+```text
+数字 x
+```
+
+第一反应：
+
+```text
+x → 下标 x-1
+```
+
+然后：
+
+````text
+原地归位 → 再扫描第一个 nums[i] != i+1
+
 # 栈 / Stack
 
 1. 20. Valid Parentheses / 有效的括号
@@ -3487,6 +3732,278 @@ class Solution {
 ## 关键词触发 / Triggers
 "有序数组转BST" / "平衡" → 递归取中间 + 分治
 
+
+8. 98. Validate Binary Search Tree / 验证二叉搜索树
+**难度**: Medium / 中等 | **标签**: Tree, DFS, BST, Recursion / 树, 深度优先, 二叉搜索树, 递归
+
+## 原题 / Original Problem
+Given the root of a binary tree, determine whether it is a valid binary search tree.
+
+给定一个二叉树的根节点 root，判断其是否是一个有效的二叉搜索树。
+
+有效 BST 要求：
+- 左子树所有节点都严格小于当前节点
+- 右子树所有节点都严格大于当前节点
+- 左右子树自身也必须是有效 BST
+
+**示例**:
+- `[2,1,3] → true`
+- `[5,1,4,null,null,3,6] → false`
+
+## 代码 / Code（递归 + 上下界）
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return check(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    private boolean check(TreeNode node, long min, long max) {
+        if (node == null) return true;
+
+        if (node.val <= min || node.val >= max) {
+            return false;
+        }
+
+        return check(node.left, min, node.val)
+            && check(node.right, node.val, max);
+    }
+}
+````
+
+## 为什么不能只比较父节点和左右孩子？
+
+例如：
+
+```text
+      5
+     / \
+    1   7
+       /
+      3
+```
+
+如果只比较父子：
+
+```text
+1 < 5 < 7 ✓
+3 < 7 ✓
+```
+
+看起来都没问题。
+
+但实际上 `3` 在 `5` 的右子树中，而：
+
+```text
+3 < 5
+```
+
+违反了 BST 的要求：
+
+```text
+5 的整个右子树都必须 > 5
+```
+
+所以不能只检查：
+
+```text
+左孩子 < 父节点 < 右孩子
+```
+
+必须让每个节点都处于一个合法范围内。
+
+## 核心思路：给每个节点维护合法区间
+
+根节点没有限制：
+
+```text
+(-∞, +∞)
+```
+
+所以：
+
+```java
+check(root, Long.MIN_VALUE, Long.MAX_VALUE)
+```
+
+到了节点 `5`：
+
+```text
+左子树范围：(-∞, 5)
+右子树范围：(5, +∞)
+```
+
+如果当前节点是 `7`：
+
+```text
+它本身范围：(5, +∞)
+
+它的左子树范围：
+(5, 7)
+
+它的右子树范围：
+(7, +∞)
+```
+
+所以递归的时候：
+
+```java
+左子树 → check(node.left, min, node.val)
+右子树 → check(node.right, node.val, max)
+```
+
+每往下一层，合法范围都会进一步缩小。
+
+## 过程追踪 / Walkthrough
+
+```text
+树：
+
+      5
+     / \
+    1   7
+       /
+      3
+
+check(5, -∞, +∞)
+5 合法
+
+左：
+check(1, -∞, 5)
+1 合法
+→ true
+
+右：
+check(7, 5, +∞)
+7 合法
+
+7 的左：
+check(3, 5, 7)
+
+3 <= 5
+→ 越界
+→ false
+
+最终：
+false ✅
+```
+
+## 为什么边界是 long？
+
+题目节点值可能达到：
+
+```text
+-2^31 ~ 2^31-1
+```
+
+如果直接使用：
+
+```java
+Integer.MIN_VALUE
+Integer.MAX_VALUE
+```
+
+那么当节点本身就是极值时会被误判。
+
+例如节点值：
+
+```text
+Integer.MIN_VALUE
+```
+
+如果下界也是：
+
+```text
+Integer.MIN_VALUE
+```
+
+那么：
+
+```java
+node.val <= min
+```
+
+成立，会错误返回 false。
+
+所以使用：
+
+```java
+Long.MIN_VALUE
+Long.MAX_VALUE
+```
+
+让初始范围真正覆盖所有 int 节点值。
+
+## 为什么必须 return 左右递归结果？
+
+不能只写：
+
+```java
+check(node.left, min, node.val);
+check(node.right, node.val, max);
+```
+
+因为子树返回的 `false` 会被丢掉。
+
+必须：
+
+```java
+return check(node.left, min, node.val)
+    && check(node.right, node.val, max);
+```
+
+只要左子树或右子树有一个不合法，整棵树就是无效 BST。
+
+## 易错点 / My Mistakes
+
+* 一开始认为只检查“父节点 < 左右孩子”就够了，其实不够，必须限制**整个子树**。
+* `root` 的初始边界应该是：
+
+```java
+Long.MIN_VALUE, Long.MAX_VALUE
+```
+
+* BST 要求的是**严格小于 / 严格大于**，所以判断必须是：
+
+```java
+node.val <= min || node.val >= max
+```
+
+* 左子树：
+
+```java
+(min, node.val)
+```
+
+* 右子树：
+
+```java
+(node.val, max)
+```
+
+* 递归调用必须 `return` 回去，否则子树的 false 会丢失。
+* `null` 节点表示当前子树合法结束：
+
+```java
+if (node == null) return true;
+```
+
+## 关键词触发 / Triggers
+
+"验证二叉搜索树" / "BST是否合法" / "左小右大" → **递归 + 上下界约束**
+
+看到：
+
+```text
+不能只比较父子
+```
+
+第一反应：
+
+```text
+给每个节点一个合法区间
+左子树缩小 upper
+右子树抬高 lower
+```
 
 # 图论 / Graph
 
