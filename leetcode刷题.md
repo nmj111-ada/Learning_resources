@@ -4005,6 +4005,722 @@ if (node == null) return true;
 右子树抬高 lower
 ```
 
+9. 230. Kth Smallest Element in a BST / 二叉搜索树中第 K 小的元素
+
+难度: Medium / 中等 | 标签: Tree, BST, DFS, Stack / 树, 二叉搜索树, 深度优先, 栈
+
+原题 / Original Problem
+
+Given the root of a binary search tree, and an integer k, return the kth smallest value in the tree.
+
+给定一个二叉搜索树的根节点 root 和整数 k，返回其中第 k 小的元素。
+
+示例:
+
+root = [3,1,4,null,2], k = 1 → 1
+root = [5,3,6,2,4,null,null,1], k = 3 → 3
+代码 / Code（BST 中序遍历）
+class Solution {
+    public int kthSmallest(TreeNode root, int k) {
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode cur = root;
+
+
+        while (cur != null || !stack.isEmpty()) {
+            // 一路向左
+            while (cur != null) {
+                stack.push(cur);
+                cur = cur.left;
+            }
+
+
+            // 当前未处理节点中最小的一个
+            cur = stack.pop();
+            k--;
+
+
+            if (k == 0) {
+                return cur.val;
+            }
+
+
+            // 转向右子树
+            cur = cur.right;
+        }
+
+
+        return -1;
+    }
+}
+为什么 BST 的中序遍历是递增的？
+
+BST 满足：
+
+左子树所有节点 < 当前节点 < 右子树所有节点
+
+而中序遍历顺序正好是：
+
+左 → 根 → 右
+
+所以：
+
+有序左子树
+↓
+当前节点
+↓
+有序右子树
+
+最终得到完整的递增序列。
+
+例如：
+
+        5
+       / \
+      3   7
+     / \ / \
+    2  4 6  8
+
+中序遍历：
+
+2 3 4 5 6 7 8
+
+因此第 k 个被访问的节点就是第 k 小。
+
+过程追踪 / Walkthrough
+root = [3,1,4,null,2], k=1
+
+
+        3
+       / \
+      1   4
+       \
+        2
+
+
+一路向左：
+3 → 1
+
+
+弹出1：
+k = 1-1 = 0
+→ return 1 ✅
+
+再看 k=3：
+
+中序顺序：
+1 → 2 → 3 → 4
+
+
+1：k=3→2
+2：k=2→1
+3：k=1→0
+→ return 3 ✅
+核心思路
+
+普通做法可以：
+
+中序遍历
+→ 全部放进 List
+→ 取 result[k-1]
+
+但没必要。
+
+因为中序遍历本身就是有序输出：
+
+找到一个节点
+→ k--
+→ k==0
+→ 直接返回
+
+因此不需要保存整个结果数组。
+
+为什么用栈？
+
+递归版本本质上也是：
+
+一路向左
+↓
+回到父节点
+↓
+处理右子树
+
+显式 Stack<TreeNode> 就是在手动模拟递归调用栈。
+
+stack = 还没处理、等待回来的节点
+cur   = 当前正在处理的节点
+复杂度
+时间：O(H + k)
+
+其中 H 为树高，最坏为：
+
+O(n)
+
+空间：
+
+O(H)
+
+栈最多保存一条从根到叶子的路径。
+
+进阶：频繁修改 + 频繁查询第 K 小
+
+普通中序遍历每次查询都需要走树。
+
+如果 BST 经常插入、删除，而且频繁查询第 k 小，可以给每个节点增加：
+
+int size;
+
+表示：
+
+以当前节点为根的子树节点总数
+
+例如：
+
+        5
+       / \
+      3   7
+     / \
+    2   4
+2.size = 1
+4.size = 1
+3.size = 3
+7.size = 1
+5.size = 5
+
+查询时只看左子树有多少节点：
+
+leftSize = size(node.left)
+k <= leftSize → 第 k 小在左子树
+k == leftSize + 1 → 当前节点就是答案
+k > leftSize + 1 → 去右子树，k -= leftSize + 1
+
+如果再使用 AVL、红黑树、Treap 等平衡 BST：
+
+插入：O(log n)
+删除：O(log n)
+第 K 小：O(log n)
+
+这就是 Order Statistic Tree / 顺序统计树 的思想。
+
+易错点 / My Mistakes
+BST 中序遍历是递增序列，这是这题最关键的性质。
+不需要把全部节点放入 List，找到第 k 个直接返回。
+Stack 里存的是 TreeNode，cur 是当前节点。
+k-- 应该发生在真正“访问节点”的时候。
+k == 0 时直接返回当前节点值。
+进阶的 size 版本需要提前维护子树大小，不能每次查询再重新遍历子树，否则还是 O(n)。
+LeetCode 原题的 TreeNode 没有 size 字段；size 版属于增强 BST 的数据结构设计。
+关键词触发 / Triggers
+
+"BST 第 K 小" / "第 K 小元素" → 中序遍历 + k--
+
+看到：
+
+BST + 第K小
+
+第一反应：
+
+BST 中序 = 递增序列
+→ 第 K 个访问到的节点就是答案
+10. 199. Binary Tree Right Side View / 二叉树的右视图
+
+难度: Medium / 中等 | 标签: Tree, BFS, Queue / 树, 广度优先, 队列
+
+原题 / Original Problem
+
+Given the root of a binary tree, imagine yourself standing on the right side of it. Return the values of the nodes you can see from top to bottom.
+
+给定一棵二叉树，假设站在它的右侧，从上到下返回从右侧能够看到的节点值。
+
+示例:
+
+[1,2,3,null,5,null,4] → [1,3,4]
+代码 / Code（BFS 层序遍历）
+class Solution {
+    public List<Integer> rightSideView(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+
+
+        if (root == null) {
+            return result;
+        }
+
+
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+
+
+        while (!q.isEmpty()) {
+            int size = q.size();
+
+
+            for (int i = 0; i < size; i++) {
+                TreeNode node = q.poll();
+
+
+                // 当前层最后一个节点 = 右视图能看到的节点
+                if (i == size - 1) {
+                    result.add(node.val);
+                }
+
+
+                if (node.left != null) {
+                    q.offer(node.left);
+                }
+
+
+                if (node.right != null) {
+                    q.offer(node.right);
+                }
+            }
+        }
+
+
+        return result;
+    }
+}
+核心思路：每层最后一个节点
+
+BFS 天然是一层一层遍历：
+
+第1层 → 第2层 → 第3层 → ...
+
+如果每层按照：
+
+左 → 右
+
+遍历，那么：
+
+这一层最后被访问到的节点
+=
+这一层最右边的节点
+
+所以只需要：
+
+if (i == size - 1)
+
+把它加入答案。
+
+过程追踪 / Walkthrough
+        1
+       / \
+      2   3
+       \   \
+        5   4
+
+第一层：
+
+[1]
+
+
+i=0
+size=1
+i == size-1
+→ 加入 1
+
+第二层：
+
+[2,3]
+
+
+i=0 → 2，不加入
+i=1 → 3，加入
+
+第三层：
+
+[5,4]
+
+
+i=0 → 5，不加入
+i=1 → 4，加入
+
+最终：
+
+[1,3,4] ✅
+为什么一定要保存 size = q.size()？
+
+因为：
+
+int size = q.size();
+
+表示：
+
+当前这一轮队列中的节点全部属于同一层。
+
+然后：
+
+for (int i = 0; i < size; i++)
+
+只处理这一层。
+
+处理当前节点时，它的左右孩子会进入队列，但不会影响当前 for 应该处理多少个节点。
+
+所以 size 就是“这一层的边界”。
+
+另一种写法
+
+也可以：
+
+右子树先入队
+左子树后入队
+
+这样每层第一个弹出来的节点就是最右节点。
+
+但你现在这种：
+
+左 → 右
+取最后一个
+
+更符合你之前已经掌握的层序遍历模板。
+
+易错点 / My Mistakes
+一开始把每个节点都加入 result，这样得到的是完整的层序遍历，不是右视图。
+判断当前节点是不是这一层最后一个：
+i == size - 1
+size = q.size() 必须在处理当前层之前保存。
+root == null 时不能直接 q.offer(root)，否则后面访问 node.val 会空指针。
+当前层的孩子虽然会入队，但由于 size 已经固定，不会被错误地算进当前层。
+关键词触发 / Triggers
+
+"右视图" / "每层最右边" / "从右边看到" → BFS + 每层最后一个
+
+看到：
+
+每层第一个/最后一个节点
+
+第一反应：
+
+BFS
++
+size = q.size()
++
+控制当前层
+11. 114. Flatten Binary Tree to Linked List / 二叉树展开为链表
+
+难度: Medium / 中等 | 标签: Tree, DFS, Linked List, In-place / 树, 深度优先, 链表, 原地
+
+原题 / Original Problem
+
+Given the root of a binary tree, flatten the tree into a linked list in-place.
+
+给定二叉树的根节点 root，将它展开为一个单链表。
+
+要求：
+
+仍然使用 TreeNode
+right 指向链表下一个节点
+所有 left = null
+链表顺序与二叉树先序遍历相同
+代码 / Code（原地 O(1) 空间）
+class Solution {
+    public void flatten(TreeNode root) {
+        TreeNode cur = root;
+
+
+        while (cur != null) {
+            if (cur.left != null) {
+
+
+                // 找左子树中最右边的节点
+                TreeNode pre = cur.left;
+
+
+                while (pre.right != null) {
+                    pre = pre.right;
+                }
+
+
+                // 原来的右子树接到左子树最右节点后面
+                pre.right = cur.right;
+
+
+                // 左子树搬到右边
+                cur.right = cur.left;
+
+
+                // 清空左指针
+                cur.left = null;
+            }
+
+
+            // 继续处理新的右节点
+            cur = cur.right;
+        }
+    }
+}
+核心思路：根 → 左子树 → 原右子树
+
+先序遍历：
+
+根 → 左 → 右
+
+假设当前：
+
+        1
+       / \
+      2   5
+     / \
+    3   4
+
+我们希望展开：
+
+1 → 2 → 3 → 4 → 5
+
+当前节点 1 有：
+
+left = 2
+right = 5
+
+左子树展开后：
+
+2 → 3 → 4
+
+所以原来的右子树 5 应该接到：
+
+左子树最右节点 4
+
+后面。
+
+于是：
+
+pre.right = cur.right;
+
+然后：
+
+cur.right = cur.left;
+cur.left = null;
+
+当前结构就变成：
+
+1
+ \
+  2
+ / \
+3  4
+    \
+     5
+
+继续处理 2、3、4，最终变成：
+
+1
+ \
+  2
+   \
+    3
+     \
+      4
+       \
+        5
+过程追踪 / Walkthrough
+原树：
+
+
+        1
+       / \
+      2   5
+     / \
+    3   4
+
+
+cur = 1
+
+
+1. cur.left != null
+   pre = 2
+
+
+2. 找 pre 的最右节点
+   2.right = 4
+   → pre = 4
+
+
+3. 原右子树接到 pre 后面
+   4.right = 5
+
+
+4. 左子树搬到右边
+   1.right = 2
+
+
+5. 清空左指针
+   1.left = null
+
+
+得到：
+
+
+1
+ \
+  2
+ / \
+3  4
+    \
+     5
+
+
+cur = cur.right
+→ cur = 2
+
+
+继续处理，最终：
+
+
+1 → 2 → 3 → 4 → 5 ✅
+为什么不需要“往上遍历”？
+
+看起来像：
+
+先走到最左边
+→ 再往上返回
+
+但迭代版实际上不用真的回到父节点。
+
+每次只做：
+
+当前节点有左子树
+↓
+找左子树最右节点 pre
+↓
+把当前原右子树接到 pre 后面
+↓
+左子树搬到右边
+↓
+当前节点继续向右
+
+所以只需要一个：
+
+TreeNode cur
+
+不断往 right 走。
+
+为什么 pre 要找“左子树最右节点”？
+
+因为先序顺序是：
+
+当前节点 → 左子树 → 右子树
+
+左子树展开后，最后一个节点就是：
+
+左子树中序意义上的最右节点
+
+把原来的右子树接到它后面，就能得到：
+
+当前节点
+↓
+完整左子树
+↓
+原右子树
+
+顺序刚好符合先序遍历。
+
+为什么不能直接 cur.right = cur.left？
+
+因为原来的：
+
+cur.right
+
+会失去引用。
+
+所以一定要先保存：
+
+pre.right = cur.right;
+
+把原右子树接起来，再：
+
+cur.right = cur.left;
+为什么代码只有一个 if？
+
+不需要判断：
+
+pre.right.left
+pre.right.right
+
+也不需要关心前驱到底是不是叶子。
+
+我们真正关心的只有：
+
+找到左子树最右边那个节点。
+
+所以统一写：
+
+TreeNode pre = cur.left;
+
+
+while (pre.right != null) {
+    pre = pre.right;
+}
+
+找到以后直接接线即可。
+
+复杂度
+额外空间：O(1)
+
+时间复杂度可看作：
+
+O(n)
+
+每次找到前驱并重新连接，整体遍历树中的节点和边的次数是线性的。
+
+易错点 / My Mistakes
+一开始按“递归返回父节点”的方式思考，导致代码出现大量 if 判断。
+不需要判断 pre.right.left、pre.right.right，只需要一直找最右节点。
+必须先：
+pre.right = cur.right;
+
+否则原来的右子树会丢失。
+
+然后：
+cur.right = cur.left;
+cur.left = null;
+这题要求修改原树，不是返回 List<Integer>，方法是 void。
+root == null 时直接让 cur = root，while 自然结束，不需要额外处理。
+关键词触发 / Triggers
+
+"二叉树展开为链表" / "先序顺序" / "原地 O(1)" → 找左子树最右节点 + 指针重连
+
+看到：
+
+根 → 左 → 右
++
+原地修改
+
+第一反应：
+
+找左子树最右节点 pre
+→ pre.right = 原右子树
+→ cur.right = 左子树
+→ cur.left = null
+三题放在一起记
+230 BST 第K小
+→ 中序遍历 = 升序
+→ k-- 找第K个
+
+
+199 二叉树右视图
+→ BFS 一层一层
+→ 取每层最后一个
+
+
+114 二叉树展开
+→ 先序 根左中右
+→ 左子树最右节点接原右子树
+→ 左搬右，left清空
+
+这三题可以连成一个很好的二叉树知识链：
+
+BST 的特殊性质
+        ↓
+230：中序 = 有序
+
+
+普通二叉树的层级结构
+        ↓
+199：BFS + size 控制层
+
+
+普通二叉树的结构重连
+        ↓
+114：先序 + 原地指针操作
+
 # 图论 / Graph
 
 1. 200. Number of Islands / 岛屿数量
