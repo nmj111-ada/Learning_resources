@@ -4721,6 +4721,417 @@ BST 的特殊性质
         ↓
 114：先序 + 原地指针操作
 
+12. 105. Construct Binary Tree from Preorder and Inorder Traversal / 从前序与中序遍历序列构造二叉树
+
+难度: Medium / 中等 | 标签: Tree, DFS, Hash Map, Divide and Conquer / 树, 深度优先, 哈希表, 分治
+
+原题 / Original Problem
+
+Given two integer arrays preorder and inorder, construct the binary tree and return its root.
+
+给定二叉树的先序遍历 preorder 和中序遍历 inorder，构造二叉树并返回根节点。
+
+示例:
+
+preorder = [3,9,20,15,7]
+inorder  = [9,3,15,20,7]
+
+
+→
+
+
+        3
+       / \
+      9   20
+         /  \
+        15   7
+代码 / Code（递归 + HashMap）
+class Solution {
+
+
+    Map<Integer, Integer> map = new HashMap<>();
+
+
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+
+
+        // inorder中的“值 → 下标”
+        for (int i = 0; i < inorder.length; i++) {
+            map.put(inorder[i], i);
+        }
+
+
+        return build(
+            preorder, 0, preorder.length - 1,
+            inorder, 0, inorder.length - 1
+        );
+    }
+
+
+    private TreeNode build(
+        int[] preorder, int preLeft, int preRight,
+        int[] inorder, int inLeft, int inRight
+    ) {
+        if (preLeft > preRight) {
+            return null;
+        }
+
+
+        // 前序第一个元素 = 当前子树根
+        TreeNode root = new TreeNode(preorder[preLeft]);
+
+
+        // 找根在中序中的位置
+        int inIndex = map.get(root.val);
+
+
+        // 左子树节点数量
+        int leftSize = inIndex - inLeft;
+
+
+        // 构造左子树
+        root.left = build(
+            preorder,
+            preLeft + 1,
+            preLeft + leftSize,
+            inorder,
+            inLeft,
+            inIndex - 1
+        );
+
+
+        // 构造右子树
+        root.right = build(
+            preorder,
+            preLeft + leftSize + 1,
+            preRight,
+            inorder,
+            inIndex + 1,
+            inRight
+        );
+
+
+        return root;
+    }
+}
+核心思路：前序找根，中序切左右
+
+这题最关键的两条性质：
+
+前序遍历
+根 → 左 → 右
+
+所以：
+
+preorder[preLeft]
+
+一定是当前子树的根。
+
+中序遍历
+左 → 根 → 右
+
+找到根以后：
+
+左边 = 左子树
+右边 = 右子树
+
+例如：
+
+preorder = [3,9,20,15,7]
+inorder  = [9,3,15,20,7]
+
+前序第一个：
+
+3
+
+所以根是 3。
+
+在 inorder 中：
+
+[9] 3 [15,20,7]
+
+因此：
+
+左子树 = [9]
+右子树 = [15,20,7]
+
+然后递归处理左右子树。
+
+过程追踪 / Walkthrough
+preorder = [3,9,20,15,7]
+inorder  = [9,3,15,20,7]
+
+
+第一层：
+
+
+preorder第一个 = 3
+→ root = 3
+
+
+inorder找到3：
+[9] 3 [15,20,7]
+
+
+左子树：
+preorder = [9]
+inorder  = [9]
+
+
+右子树：
+preorder = [20,15,7]
+inorder  = [15,20,7]
+
+
+
+
+处理右子树：
+
+
+preorder第一个 = 20
+→ root = 20
+
+
+inorder：
+[15] 20 [7]
+
+
+所以：
+左子树 = 15
+右子树 = 7
+
+
+
+
+最终：
+
+
+        3
+       / \
+      9   20
+         /  \
+        15   7
+为什么递归函数返回 TreeNode？
+
+这题不是返回一个数字。
+
+每次递归处理的是：
+
+当前范围对应的整棵子树。
+
+所以：
+
+private TreeNode build(...)
+
+表示：
+
+给我这一段 preorder + inorder，我帮你构造这棵子树，并返回它的根节点。
+
+然后父节点直接接收：
+
+root.left = build(...);
+root.right = build(...);
+
+这就是递归构树的核心模式：
+
+当前 root
+   ↓
+build 左子树 → 返回 TreeNode
+   ↓
+接到 root.left
+
+
+build 右子树 → 返回 TreeNode
+   ↓
+接到 root.right
+
+
+return root
+为什么需要边界，而不是直接切数组？
+
+可以直接创建新的子数组，但会产生大量额外空间和拷贝。
+
+所以这里只传：
+
+preLeft / preRight
+inLeft / inRight
+
+表示当前子树在两个遍历数组中的范围。
+
+例如：
+
+左子树 inorder：
+inLeft → inIndex - 1
+
+
+右子树 inorder：
+inIndex + 1 → inRight
+最关键：怎么确定 preorder 的左右范围？
+
+设：
+
+int leftSize = inIndex - inLeft;
+
+表示：
+
+左子树有多少个节点。
+
+因为 preorder 是：
+
+根 → 左 → 右
+
+所以：
+
+左子树 preorder
+
+根后面的 leftSize 个元素：
+
+preLeft + 1
+~
+preLeft + leftSize
+右子树 preorder
+
+剩下的：
+
+preLeft + leftSize + 1
+~
+preRight
+
+这个下标关系是本题最容易写错的地方。
+
+为什么需要 HashMap？
+
+如果每次都在 inorder 中：
+
+for (int i = inLeft; i <= inRight; i++) {
+    if (inorder[i] == root.val) ...
+}
+
+那么每层递归都可能重新扫描。
+
+最坏情况下：
+
+O(n²)
+
+所以提前建立：
+
+Map<Integer, Integer> map
+
+保存：
+
+值 → 在 inorder 中的位置
+
+例如：
+
+9 → 0
+3 → 1
+15 → 2
+20 → 3
+7 → 4
+
+这样：
+
+int inIndex = map.get(root.val);
+
+就可以：
+
+O(1)
+
+直接找到根的位置。
+
+易错点 / My Mistakes
+一开始把 root 写成 int，实际上需要：
+TreeNode root = new TreeNode(preorder[preLeft]);
+Map 的方向写反了。应该：
+map.put(inorder[i], i);
+
+不是：
+
+map.put(i, inorder[i]);
+递归函数必须返回 TreeNode，因为它构造的是一棵子树。
+递归结果不能直接丢掉：
+build(...);
+build(...);
+
+必须：
+
+root.left = build(...);
+root.right = build(...);
+必须有递归终止条件：
+if (preLeft > preRight) return null;
+不需要 dummy。树的构造就是“递归返回子树根节点，然后挂到当前节点上”。
+preorder 第一个元素是当前根；inorder 中根左边是左子树，右边是右子树。
+题目中的输出 [3,9,20,null,null,15,7] 是 LeetCode 对树的序列化展示，不代表你需要自己进行一次层序遍历。
+复杂度
+
+建立 HashMap：
+
+O(n)
+
+每个节点只构造一次：
+
+O(n)
+
+所以：
+
+时间：O(n)
+空间：O(n)
+
+其中 O(n) 空间来自 HashMap 和递归栈。
+
+关键词触发 / Triggers
+
+"前序 + 中序构造二叉树" → 前序找根 + 中序切左右 + 递归 + HashMap
+
+看到：
+
+preorder + inorder
+
+第一反应：
+
+preorder 第一个
+↓
+当前根
+
+
+去 inorder 找根
+↓
+左边 = 左子树
+右边 = 右子树
+
+
+递归构造
+这题和前面几道树题串起来
+98. 验证 BST
+→ BST 的全局范围约束
+
+
+230. BST 第 K 小
+→ BST 中序 = 递增
+
+
+199. 二叉树右视图
+→ BFS + 每层最后一个
+
+
+114. 二叉树展开
+→ 先序顺序 + 原地指针重连
+
+
+105. 前序 + 中序构造二叉树
+→ 前序找根，中序拆左右
+
+这题你真正需要记住的不是整份代码，而是这条链：
+
+前序：根 → 左 → 右
+中序：左 → 根 → 右
+
+
+前序第一个 = 根
+中序找到根 = 划分左右子树
+↓
+递归构造
+
 # 图论 / Graph
 
 1. 200. Number of Islands / 岛屿数量
