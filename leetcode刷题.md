@@ -5132,6 +5132,188 @@ preorder 第一个
 ↓
 递归构造
 
+13. 437. Path Sum III / 路径总和 III
+
+难度: Medium / 中等 | 标签: Tree, DFS, Prefix Sum, Hash Map / 树, 深度优先, 前缀和, 哈希表
+
+原题 / Original Problem
+
+给定一个二叉树的根节点 root 和一个整数 targetSum，求二叉树中节点值之和等于 targetSum 的向下路径数量。路径不需要从根节点开始，也不需要在叶子节点结束。
+
+示例: root = [10,5,-3,3,2,null,11,3,-2,null,1], targetSum = 8 → 3
+
+解法一：双递归
+class Solution {
+    int result = 0;
+
+
+    public int pathSum(TreeNode root, int targetSum) {
+        if (root == null) return 0;
+
+
+        sum(root, targetSum);
+        pathSum(root.left, targetSum);
+        pathSum(root.right, targetSum);
+
+
+        return result;
+    }
+
+
+    private void sum(TreeNode node, long target) {
+        if (node == null) return;
+
+
+        if (node.val == target) {
+            result++;
+        }
+
+
+        sum(node.left, target - node.val);
+        sum(node.right, target - node.val);
+    }
+}
+解法二：前缀和 + HashMap
+class Solution {
+    int result = 0;
+    Map<Long, Integer> prefix = new HashMap<>();
+
+
+    public int pathSum(TreeNode root, int targetSum) {
+        prefix.put(0L, 1);
+        dfs(root, 0L, targetSum);
+        return result;
+    }
+
+
+    private void dfs(TreeNode node, long curSum, int targetSum) {
+        if (node == null) return;
+
+
+        curSum += node.val;
+
+
+        result += prefix.getOrDefault(
+            curSum - targetSum, 0
+        );
+
+
+        prefix.put(
+            curSum,
+            prefix.getOrDefault(curSum, 0) + 1
+        );
+
+
+        dfs(node.left, curSum, targetSum);
+        dfs(node.right, curSum, targetSum);
+
+
+        prefix.put(curSum, prefix.get(curSum) - 1);
+    }
+}
+核心思路 / Core Idea
+
+**双递归：**每个节点作为一次路径起点，再向下寻找满足 targetSum 的路径。
+
+**前缀和 + HashMap：**维护当前路径前缀和 curSum，查询 curSum - targetSum 的出现次数；DFS 返回时撤销当前前缀和。
+
+复杂度 / Complexity
+
+双递归：
+
+时间：O(n²)
+空间：O(h)
+
+前缀和 + HashMap：
+
+时间：O(n)
+空间：O(h)
+易错点 / Pitfalls
+node == null 必须先判断
+前缀和使用 long
+prefix.put(0L, 1) 不能漏
+HashMap 记录的是当前递归路径上的前缀和
+DFS 返回后必须回溯当前 curSum
+双递归中左右子树不要重复写成同一个
+关键词触发 / Triggers
+
+"路径总和 III" / "任意节点开始的向下路径和" → 前缀和 + HashMap + DFS
+
+14. 124. Binary Tree Maximum Path Sum / 二叉树中的最大路径和
+
+难度: Hard / 困难 | 标签: Tree, DFS, Dynamic Programming / 树, 深度优先, 动态规划
+
+原题 / Original Problem
+
+给定一个二叉树的根节点 root，返回其最大路径和。路径可以从任意节点开始，不一定经过根节点。
+
+示例:
+
+[1,2,3] → 6
+[-10,9,20,null,null,15,7] → 42
+代码 / Code
+class Solution {
+    int max = Integer.MIN_VALUE;
+
+
+    public int maxPathSum(TreeNode root) {
+        depth(root);
+        return max;
+    }
+
+
+    private int depth(TreeNode node) {
+        if (node == null) {
+            return 0;
+        }
+
+
+        int left = Math.max(0, depth(node.left));
+        int right = Math.max(0, depth(node.right));
+
+
+        max = Math.max(
+            max,
+            node.val + left + right
+        );
+
+
+        return node.val + Math.max(left, right);
+    }
+}
+核心思路 / Core Idea
+
+后序 DFS。
+
+每个节点计算：
+
+左贡献 = max(0, 左子树最大单边路径和)
+右贡献 = max(0, 右子树最大单边路径和)
+
+经过当前节点的完整路径：
+
+left + node.val + right
+
+更新全局最大值。
+
+返回给父节点时只能选择一边：
+
+node.val + max(left, right)
+复杂度 / Complexity
+时间：O(n)
+空间：O(h)
+易错点 / Pitfalls
+max 必须是类成员变量
+max 初始值不能是 0，要用 Integer.MIN_VALUE
+node == null 返回 0
+负数贡献直接舍弃：Math.max(0, ...)
+全局答案可以同时使用左右子树
+返回给父节点只能选择左或右一边
+最大路径不一定经过根节点
+关键词触发 / Triggers
+
+"二叉树最大路径和" / "路径不一定经过根节点" → 后序 DFS + 全局 max
+
 # 图论 / Graph
 
 1. 200. Number of Islands / 岛屿数量
