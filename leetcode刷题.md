@@ -5314,6 +5314,107 @@ node == null 返回 0
 
 "二叉树最大路径和" / "路径不一定经过根节点" → 后序 DFS + 全局 max
 
+15. 236. Lowest Common Ancestor of a Binary Tree / 二叉树的最近公共祖先
+
+难度: Medium / 中等 | 标签: Tree, DFS, Recursion / 树, 深度优先, 递归
+
+原题 / Original Problem
+
+给定一个二叉树的根节点 root，以及两个指定节点 p 和 q，找到它们的最近公共祖先。
+
+最近公共祖先可以是 p 或 q 本身。
+
+示例:
+
+p=5, q=1 → 3
+p=5, q=4 → 5
+p=1, q=2 → 1
+代码 / Code
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) {
+            return root;
+        }
+
+
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+
+
+        if (left == null) return right;
+        if (right == null) return left;
+
+
+        return root;
+    }
+}
+核心思路 / Core Idea
+
+递归返回“当前子树能提供给父节点的结果”。
+
+root == null
+→ return null
+
+
+root == p 或 root == q
+→ return root
+
+递归左右子树：
+
+left = 左子树结果
+right = 右子树结果
+
+然后：
+
+left == null
+→ return right
+
+
+right == null
+→ return left
+
+
+left != null && right != null
+→ return root
+
+其中：
+
+null
+→ 当前子树没有找到目标
+
+
+p / q
+→ 当前子树找到一个目标
+
+
+其他节点
+→ 当前子树内部已经找到最近公共祖先
+复杂度 / Complexity
+时间：O(n)
+空间：O(h)
+易错点 / Pitfalls
+root == p || root == q 时必须直接返回 root
+比较节点要用：
+root == p
+
+而不是比较 val
+
+left 和 right 都不为 null 时，当前 root 才是 LCA
+left == null 时返回 right
+right == null 时返回 left
+不需要额外记录父节点或路径
+递归函数返回的是“当前子树的结果”，不只是 p/q 本身
+关键词触发 / Triggers
+
+"最近公共祖先" / "LCA" / "两个节点的公共祖先" → DFS 递归 + 左右返回值
+
+核心模板：
+
+当前是 p/q → 返回当前
+左空 → 返回右
+右空 → 返回左
+左右都有 → 当前节点就是 LCA
+
 # 图论 / Graph
 
 1. 200. Number of Islands / 岛屿数量
