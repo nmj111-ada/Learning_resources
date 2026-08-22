@@ -5616,6 +5616,167 @@ nums=[1,2,3]
 "全排列" / "所有组合" / "互不相同" → 回溯 + used 标记
 
 
+2. 78. Subsets / 子集
+
+难度: Medium / 中等 | 标签: Array, Backtracking / 数组, 回溯
+
+原题 / Original Problem
+
+给你一个整数数组 nums，数组中的元素互不相同。返回该数组所有可能的子集（幂集）。
+
+示例:
+
+nums = [1,2,3]
+
+输出：
+[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+代码 / Code
+class Solution {
+    List<List<Integer>> result = new ArrayList<>();
+    LinkedList<Integer> path = new LinkedList<>();
+
+    public List<List<Integer>> subsets(int[] nums) {
+        subsetHelper(nums, 0);
+        return result;
+    }
+
+    private void subsetHelper(int[] nums, int startIndex) {
+        result.add(new ArrayList<>(path));
+
+        for (int i = startIndex; i < nums.length; i++) {
+            path.add(nums[i]);
+
+            subsetHelper(nums, i + 1);
+
+            path.removeLast();
+        }
+    }
+}
+核心思路 / Core Idea
+
+回溯。
+
+path 表示当前正在构造的子集。
+
+每进入一次递归，就把当前 path 加入结果，因为：
+
+任意一个递归状态都是一个合法子集。
+
+然后从 startIndex 开始选择元素：
+
+选择 nums[i]
+↓
+递归处理后面的元素
+↓
+撤销 nums[i]
+
+核心模板：
+
+path.add(nums[i])
+↓
+subsetHelper(nums, i + 1)
+↓
+path.removeLast()
+
+i + 1 保证后面的选择不会回头使用已经处理过的元素。
+
+过程结构
+[]
+├── [1]
+│   ├── [1,2]
+│   │   └── [1,2,3]
+│   └── [1,3]
+├── [2]
+│   └── [2,3]
+└── [3]
+
+同时每个节点本身都加入答案：
+
+[]
+[1]
+[1,2]
+[1,2,3]
+[1,3]
+[2]
+[2,3]
+[3]
+ArrayList 和 LinkedList / Java 容器选择
+
+这题的 path 主要操作：
+
+path.add(x);
+path.removeLast();
+
+所以使用 LinkedList 很方便。
+
+但 并不是必须使用 LinkedList，完全可以使用 ArrayList：
+
+List<Integer> path = new ArrayList<>();
+
+path.add(nums[i]);
+path.remove(path.size() - 1);
+
+这题 n <= 10，两者性能差异基本没有。
+
+选择 LinkedList 主要是因为：
+
+add
+removeLast
+
+和回溯的“加入 → 撤销”操作非常直观。
+
+复杂度 / Complexity
+
+子集数量：
+
+2^n
+
+所以：
+
+时间：O(n * 2^n)
+空间：O(n) 递归栈 + 当前 path，不计算结果集
+如果计算结果集：O(n * 2^n)
+易错点 / Pitfalls
+每次递归进入时都要：
+result.add(new ArrayList<>(path));
+
+不能直接：
+
+result.add(path);
+
+否则后续回溯会修改已经加入的结果。
+
+回溯后必须：
+path.removeLast();
+递归下一层使用：
+i + 1
+
+避免重复使用前面的元素。
+
+path 是当前状态，result 保存最终答案。
+空集 [] 也属于子集，所以递归一开始就要加入 path。
+关键词触发 / Triggers
+
+"所有子集" / "幂集" / "选或不选" → 回溯
+
+核心模板：
+
+选择
+↓
+递归
+↓
+撤销选择
+
+看到：
+
+所有可能组合
++
+元素不能重复使用
+
+第一反应：
+
+path + startIndex + 回溯
+
 # 双指针问题 / Two Pointers
 
 1. 283. Move Zeroes / 移动零
