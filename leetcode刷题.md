@@ -724,6 +724,105 @@ x → 下标 x-1
 ````text
 原地归位 → 再扫描第一个 nums[i] != i+1
 
+8. 在排序数组中查找元素的第一个和最后一个位置
+
+标签： 二分查找 / 边界 / O(log n)
+
+原题
+
+给定一个按照非递减顺序排列的整数数组 nums 和目标值 target，找出 target 在数组中的开始位置和结束位置。
+
+如果不存在，返回：
+
+[-1,-1]
+
+例如：
+
+输入：
+nums = [5,7,7,8,8,10]
+target = 8
+
+输出：
+[3,4]
+代码
+class Solution {
+
+    public int[] searchRange(int[] nums, int target) {
+
+        int first = findFirst(nums, target);
+        int last = findLast(nums, target);
+
+        return new int[]{first, last};
+    }
+
+    private int findFirst(int[] nums, int target) {
+
+        int left = 0;
+        int right = nums.length - 1;
+        int ans = -1;
+
+        while (left <= right) {
+
+            int mid = left + (right - left) / 2;
+
+            if (nums[mid] == target) {
+                ans = mid;
+                right = mid - 1;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        return ans;
+    }
+
+    private int findLast(int[] nums, int target) {
+
+        int left = 0;
+        int right = nums.length - 1;
+        int ans = -1;
+
+        while (left <= right) {
+
+            int mid = left + (right - left) / 2;
+
+            if (nums[mid] == target) {
+                ans = mid;
+                left = mid + 1;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        return ans;
+    }
+}
+易错点
+不能直接遍历数组，否则是 O(n)，不满足题目要求。
+找到 target 后不能立即返回。
+
+找第一个位置：
+
+ans = mid;
+right = mid - 1;
+
+找最后一个位置：
+
+ans = mid;
+left = mid + 1;
+
+mid 推荐写成：
+
+left + (right - left) / 2
+两次二分仍然是 O(log n)。
+结论
+
+分别二分查找左边界和右边界；找到 target 后继续向对应方向搜索。
+
 # 栈 / Stack
 
 1. 20. Valid Parentheses / 有效的括号
@@ -1688,6 +1787,86 @@ nums.length - 1
 ```text
 "目前最远能到哪里？"
 ```
+
+3. 跳跃游戏 II
+
+标签： 贪心 / 区间扩展 / 最少跳跃次数
+
+原题
+
+给定一个长度为 n 的整数数组 nums，nums[i] 表示从位置 i 最多可以向后跳多少步。
+
+返回到达最后一个位置所需的最小跳跃次数。
+
+例如：
+
+输入：
+nums = [2,3,1,1,4]
+
+输出：
+2
+
+一种最优跳法：
+
+0 → 1 → 4
+代码
+class Solution {
+
+    public int jump(int[] nums) {
+
+        if (nums.length == 1) {
+            return 0;
+        }
+
+        int step = 0;
+
+        // 当前这一步能够到达的最远位置
+        int maxReach = 0;
+
+        // 在当前范围内，下一步能够到达的最远位置
+        int nextMaxReach = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+
+            nextMaxReach = Math.max(
+                i + nums[i],
+                nextMaxReach
+            );
+
+            // 当前跳跃范围已经遍历完
+            if (i == maxReach) {
+
+                step++;
+
+                maxReach = nextMaxReach;
+
+                if (nextMaxReach >= nums.length - 1) {
+                    break;
+                }
+            }
+        }
+
+        return step;
+    }
+}
+易错点
+不能简单地每次选择 nums[i] 最大的位置。
+maxReach：当前跳跃次数能够覆盖的最远位置。
+nextMaxReach：在当前覆盖范围内，下一跳能够达到的最远位置。
+
+当：
+
+i == maxReach
+
+说明当前这一跳的范围已经遍历完，需要增加一次跳跃。
+
+step++ 后更新：
+
+maxReach = nextMaxReach;
+nums.length == 1 时不需要跳跃，答案为 0。
+结论
+
+把每次跳跃看成一个可达区间，在当前区间内寻找下一跳最远边界，到达终点时得到最少跳数。
 
 # 动态规划 / DP
 
@@ -5776,6 +5955,147 @@ path 是当前状态，result 保存最终答案。
 第一反应：
 
 path + startIndex + 回溯
+
+3. 电话号码的字母组合
+
+标签： 回溯 / 字符串 / DFS
+
+原题
+
+给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。数字到字母的映射与电话按键相同。
+
+例如：
+
+输入：digits = "23"
+
+输出：
+["ad","ae","af","bd","be","bf","cd","ce","cf"]
+代码
+class Solution {
+
+    List<String> result = new ArrayList<>();
+
+    String[] map = {
+        "",
+        "",
+        "abc",
+        "def",
+        "ghi",
+        "jkl",
+        "mno",
+        "pqrs",
+        "tuv",
+        "wxyz"
+    };
+
+    StringBuilder path = new StringBuilder();
+
+    public List<String> letterCombinations(String digits) {
+
+        if (digits.length() == 0) {
+            return result;
+        }
+
+        backtrack(digits, 0);
+
+        return result;
+    }
+
+    private void backtrack(String digits, int index) {
+
+        if (index == digits.length()) {
+            result.add(path.toString());
+            return;
+        }
+
+        int num = digits.charAt(index) - '0';
+        String letters = map[num];
+
+        for (int i = 0; i < letters.length(); i++) {
+
+            path.append(letters.charAt(i));
+
+            backtrack(digits, index + 1);
+
+            path.deleteCharAt(path.length() - 1);
+        }
+    }
+}
+易错点
+map 必须保留 0、1 对应的位置，否则数字和数组下标无法对应。
+char - '0' 可以将数字字符转换成对应整数。
+String 不可变，回溯中频繁修改字符串时使用 StringBuilder 更合适。
+
+回溯必须遵循：
+
+选择 → 递归 → 撤销选择
+
+最终加入 result 时使用：
+
+path.toString()
+结论
+
+每层处理一个数字，从对应字母中选择一个字符，使用回溯枚举所有组合。
+
+4. 组合总数 / 组合
+
+标签： 回溯 / DFS / startIndex
+
+原题
+
+给定两个整数 n 和 k，返回范围 [1,n] 中所有可能的 k 个数的组合。
+
+例如：
+
+输入：n = 4, k = 2
+
+输出：
+[[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]
+代码
+class Solution {
+
+    List<List<Integer>> result = new ArrayList<>();
+    List<Integer> path = new ArrayList<>();
+
+    public List<List<Integer>> combine(int n, int k) {
+
+        backtrack(n, k, 1);
+
+        return result;
+    }
+
+    private void backtrack(int n, int k, int startIndex) {
+
+        if (path.size() == k) {
+            result.add(new ArrayList<>(path));
+            return;
+        }
+
+        for (int i = startIndex; i <= n; i++) {
+
+            path.add(i);
+
+            backtrack(n, k, i + 1);
+
+            path.remove(path.size() - 1);
+        }
+    }
+}
+易错点
+需要 startIndex 防止重复组合。
+下一层传 i + 1，表示当前元素不能再次使用。
+result.add(path) 容易导致结果被后续回溯修改。
+
+必须使用：
+
+result.add(new ArrayList<>(path));
+
+回溯结束后必须撤销：
+
+path.remove(path.size() - 1);
+结论
+
+组合问题使用 startIndex 控制搜索范围；元素只能使用一次，因此下一层使用 i + 1。
 
 # 双指针问题 / Two Pointers
 
