@@ -823,6 +823,86 @@ left + (right - left) / 2
 
 分别二分查找左边界和右边界；找到 target 后继续向对应方向搜索。
 
+9. 33. Search in Rotated Sorted Array / 搜索旋转排序数组
+
+难度: Medium / 中等 | 标签: Array, Binary Search / 数组, 二分查找
+
+原题 / Original Problem
+
+给定一个经过旋转的升序数组 nums 和目标值 target，如果存在返回其下标，否则返回 -1。要求 O(log n)。
+
+示例:
+
+nums = [4,5,6,7,0,1,2], target = 0
+→ 4
+代码 / Code
+class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            if (nums[mid] == target) {
+                return mid;
+            }
+
+            // 左半边有序
+            if (nums[left] <= nums[mid]) {
+                if (nums[left] <= target && target < nums[mid]) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                }
+            }
+            // 右半边有序
+            else {
+                if (nums[mid] < target && target <= nums[right]) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+        }
+
+        return -1;
+    }
+}
+核心思路 / Core Idea
+
+旋转后数组虽然整体无序，但：
+
+每次二分时，mid 左右至少有一边是有序的。
+
+判断哪边有序：
+
+nums[left] <= nums[mid]
+→ 左半边有序
+
+否则
+→ 右半边有序
+
+然后判断 target 是否落在这个有序区间内：
+
+在 → 保留这一边
+不在 → 去另一边
+复杂度 / Complexity
+时间：O(log n)
+空间：O(1)
+易错点 / Pitfalls
+不能直接按照普通有序数组的二分条件判断
+每次必须先判断哪一半有序
+左边有序：
+nums[left] <= nums[mid]
+右边有序：
+nums[mid] < nums[right]
+判断目标是否在区间时注意左右边界
+mid 每轮重新计算，不需要手动在每个分支里更新
+关键词触发 / Triggers
+
+"旋转排序数组" / "O(log n)" → 二分 + 判断哪一半有序
+
 # 栈 / Stack
 
 1. 20. Valid Parentheses / 有效的括号
@@ -1867,6 +1947,73 @@ nums.length == 1 时不需要跳跃，答案为 0。
 结论
 
 把每次跳跃看成一个可达区间，在当前区间内寻找下一跳最远边界，到达终点时得到最少跳数。
+
+4. 763. Partition Labels / 划分字母区间
+
+难度: Medium / 中等 | 标签: Greedy, Hash Table, String / 贪心, 哈希表, 字符串
+
+原题 / Original Problem
+
+给定一个字符串 s，将其划分为尽可能多的片段，使得每个字母最多出现在一个片段中。返回每个片段的长度。
+
+示例:
+
+s = "ababcbacadefegdehijhklij"
+→ [9,7,8]
+代码 / Code
+class Solution {
+    public List<Integer> partitionLabels(String s) {
+        List<Integer> result = new ArrayList<>();
+
+        int[] last = new int[26];
+
+        // 记录每个字符最后一次出现的位置
+        for (int i = 0; i < s.length(); i++) {
+            last[s.charAt(i) - 'a'] = i;
+        }
+
+        int left = 0;
+        int right = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+            right = Math.max(
+                right,
+                last[s.charAt(i) - 'a']
+            );
+
+            if (i == right) {
+                result.add(i - left + 1);
+                left = i + 1;
+            }
+        }
+
+        return result;
+    }
+}
+核心思路 / Core Idea
+
+先记录每个字符最后出现的位置。
+
+从左到右遍历：
+
+当前字符最后出现位置 → 扩大 right
+i == right → 当前片段可以切割
+
+一旦到达当前最远边界，就立即切割，保证片段数量最多。
+
+复杂度 / Complexity
+时间：O(n)
+空间：O(1)，因为只使用 26 个字符的位置
+易错点 / Pitfalls
+不能只看当前字符，要维护整个片段的最远边界 right
+i == right 才能切割
+片段长度：
+i - left + 1
+题目只有小写字母，int[26] 比 HashMap<Character,Integer> 更简单
+遍历两次仍然是 O(n)，不是 O(n²)
+关键词触发 / Triggers
+
+"划分字母区间" / "每个字符只能出现在一个片段" → 记录最后位置 + 贪心 right
 
 # 动态规划 / DP
 
@@ -6096,6 +6243,107 @@ path.remove(path.size() - 1);
 结论
 
 组合问题使用 startIndex 控制搜索范围；元素只能使用一次，因此下一层使用 i + 1。
+
+5. 22. Generate Parentheses / 括号生成
+
+难度: Medium / 中等 | 标签: String, Backtracking / 字符串, 回溯
+
+原题 / Original Problem
+
+给定数字 n，生成所有可能且有效的 n 对括号组合。
+
+示例:
+
+n = 3
+
+["((()))","(()())","(())()","()(())","()()()"]
+代码 / Code
+class Solution {
+    List<String> res = new ArrayList<>();
+    StringBuilder sb = new StringBuilder();
+
+    public List<String> generateParenthesis(int n) {
+        backtrack(n, 0, 0);
+        return res;
+    }
+
+    private void backtrack(int n, int left, int right) {
+        if (sb.length() == 2 * n) {
+            res.add(sb.toString());
+            return;
+        }
+
+        // 左括号还没用完
+        if (left < n) {
+            sb.append('(');
+            backtrack(n, left + 1, right);
+            sb.deleteCharAt(sb.length() - 1);
+        }
+
+        // 右括号数量不能超过左括号
+        if (right < left) {
+            sb.append(')');
+            backtrack(n, left, right + 1);
+            sb.deleteCharAt(sb.length() - 1);
+        }
+    }
+}
+核心思路 / Core Idea
+
+回溯构造字符串。
+
+维护：
+
+left  → 已使用的 '(' 数量
+right → 已使用的 ')' 数量
+
+两个选择：
+
+left < n
+→ 可以加入 '('
+
+right < left
+→ 可以加入 ')'
+
+当：
+
+sb.length() == 2 * n
+
+说明得到一个完整合法组合。
+
+标准模板：
+
+选择
+↓
+递归
+↓
+撤销选择
+复杂度 / Complexity
+
+有效括号组合数量为 Catalan 数量：
+
+O(Cn)
+
+生成每个字符串需要 O(n)，因此总时间可记为：
+
+O(n * Cn)
+易错点 / Pitfalls
+left < n 才能继续添加 (
+right < left 才能添加 )，否则会产生非法前缀
+回溯后必须删除最后一个字符
+结束条件是：
+sb.length() == 2 * n
+不需要单独处理 n == 1
+StringBuilder 适合：
+append → 递归 → deleteCharAt
+关键词触发 / Triggers
+
+"生成所有有效括号" / "括号组合" → 回溯 + left/right 数量约束
+
+核心：
+
+left < n   → 加 '('
+right < left → 加 ')'
 
 # 双指针问题 / Two Pointers
 
