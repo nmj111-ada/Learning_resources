@@ -6630,6 +6630,204 @@ i - p.length() + 1（i 是当前窗口右边界下标）
 ## 关键词触发 / Triggers
 "字母异位词子串" / "找所有起始索引" / "定长窗口" → int[26] 计数 + 滑动窗口
 
+3. 239. Sliding Window Maximum / 滑动窗口最大值
+
+难度: Hard / 困难 | 标签: Array, Queue, Monotonic Queue, Sliding Window / 数组, 队列, 单调队列, 滑动窗口
+
+原题 / Original Problem
+
+给定整数数组 `nums` 和大小为 `k` 的滑动窗口，窗口每次向右移动一位，返回每个窗口中的最大值。
+
+示例:
+
+nums = [1,3,-1,-3,5,3,6,7], k = 3
+→ [3,3,5,5,6,7]
+代码 / Code
+class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        int[] res = new int[nums.length - k + 1];
+        Deque<Integer> dq = new ArrayDeque<>();
+
+        for (int i = 0; i < nums.length; i++) {
+
+            // 删除已经离开窗口的下标
+            if (!dq.isEmpty() && dq.peekFirst() < i - k + 1) {
+                dq.pollFirst();
+            }
+
+            // 保持队列对应的值单调递减
+            while (!dq.isEmpty() && nums[dq.peekLast()] <= nums[i]) {
+                dq.pollLast();
+            }
+
+            // 存下标
+            dq.addLast(i);
+
+            // 窗口形成后，队头就是最大值
+            if (i >= k - 1) {
+                res[i - k + 1] = nums[dq.peekFirst()];
+            }
+        }
+
+        return res;
+    }
+}
+核心思路 / Core Idea
+
+使用单调递减队列，队列中保存的是下标。
+
+队头 → 当前窗口最大值
+队尾 → 新元素进入时优先淘汰
+
+每次：
+
+删除过期下标
+→ 删除队尾所有比当前值小的下标
+→ 当前下标入队
+→ 窗口形成后取队头
+
+队列始终满足：
+
+nums[dq[0]] >= nums[dq[1]] >= ...
+复杂度 / Complexity
+时间：O(n)
+空间：O(k)
+易错点 / Pitfalls
+Deque 中存的是下标，不是数组值
+peekFirst()：看队头
+peekLast()：看队尾
+pollFirst()：删除队头
+pollLast()：删除队尾
+保持单调递减要用 while，不是 if
+结果数组长度：
+nums.length - k + 1
+数组不能使用 res.add()，应该用下标赋值
+队头下标过期时要删除
+关键词触发 / Triggers
+
+"滑动窗口最大值" / "窗口最大值" → 单调队列
+
+4. 76. Minimum Window Substring / 最小覆盖子串
+
+难度: Hard / 困难 | 标签: Hash Map, Sliding Window, Two Pointers, String / 哈希表, 滑动窗口, 双指针, 字符串
+
+原题 / Original Problem
+
+给定字符串 s 和 t，返回 s 中包含 t 所有字符（包括重复字符）的最短窗口子串。不存在则返回 ""。
+
+示例:
+
+s = "ADOBECODEBANC"
+t = "ABC"
+→ "BANC"
+代码 / Code
+class Solution {
+    public String minWindow(String s, String t) {
+        HashMap<Character, Integer> need = new HashMap<>();
+        HashMap<Character, Integer> window = new HashMap<>();
+
+        for (char c : t.toCharArray()) {
+            need.put(c, need.getOrDefault(c, 0) + 1);
+        }
+
+        int left = 0;
+        int right = 0;
+        int count = 0;
+
+        int start = 0;
+        int minLen = Integer.MAX_VALUE;
+
+        while (right < s.length()) {
+            char c = s.charAt(right);
+            right++;
+
+            if (need.containsKey(c)) {
+                window.put(c, window.getOrDefault(c, 0) + 1);
+
+                if (window.get(c).equals(need.get(c))) {
+                    count++;
+                }
+            }
+
+            // 当前窗口已经满足 t，开始缩小
+            while (count == need.size()) {
+
+                if (right - left < minLen) {
+                    start = left;
+                    minLen = right - left;
+                }
+
+                char d = s.charAt(left);
+                left++;
+
+                if (need.containsKey(d)) {
+                    if (window.get(d).equals(need.get(d))) {
+                        count--;
+                    }
+
+                    window.put(d, window.get(d) - 1);
+                }
+            }
+        }
+
+        return minLen == Integer.MAX_VALUE
+                ? ""
+                : s.substring(start, start + minLen);
+    }
+}
+核心思路 / Core Idea
+
+滑动窗口：
+
+right 右移 → 扩大窗口
+count == need.size()
+→ 当前窗口满足要求
+→ left 右移缩小窗口
+
+need：
+
+t 中每个字符需要多少个
+
+window：
+
+当前窗口中每个字符有多少个
+
+count：
+
+已经满足需求的字符种类数量
+
+当：
+
+count == need.size()
+
+说明当前窗口已经覆盖 t，不断移动 left，直到窗口刚好失效。
+
+复杂度 / Complexity
+时间：O(m + n)
+空间：O(m + n)
+易错点 / Pitfalls
+need.containsKey(c)，这里判断的是当前字符 c，不是整个字符串 s
+count 统计的是满足需求的字符种类数，不是字符总数
+count == need.size() 才开始缩窗口
+缩窗口时，如果：
+window.get(d).equals(need.get(d))
+
+说明移除后该字符会变得不足，需要 count--
+
+need 中字符出现重复时必须记录次数
+substring(start, start + minLen) 的右边界不包含
+minLen 没更新时返回 ""
+关键词触发 / Triggers
+
+"最小覆盖子串" / "最短子串包含 t 的所有字符" → 滑动窗口 + HashMap
+
+核心：
+
+right 扩大窗口
+→ 满足条件
+→ left 收缩窗口
+→ 保存最短答案
+
 # 每日刷题 / Daily Practice
 
 1. 1979. Find Greatest Common Divisor of Array / 找出数组的最大公约数
