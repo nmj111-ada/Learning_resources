@@ -903,6 +903,236 @@ mid 每轮重新计算，不需要手动在每个分支里更新
 
 "旋转排序数组" / "O(log n)" → 二分 + 判断哪一半有序
 
+10. 寻找旋转排序数组中的最小值
+
+标签： 二分查找 / 旋转数组 / 有序性
+
+原题
+
+已知一个长度为 n 的数组 nums，原数组按照升序排列，并经过了 1 到 n 次旋转。
+
+例如：
+
+[0,1,2,4,5,6,7]
+
+旋转后可能变成：
+
+[4,5,6,7,0,1,2]
+
+要求找出数组中的最小元素。
+
+保证元素互不相同。
+
+代码
+class Solution {
+
+    public int findMin(int[] nums) {
+
+        int left = 0;
+        int right = nums.length - 1;
+
+        while (left < right) {
+
+            int mid = left + (right - left) / 2;
+
+            if (nums[mid] > nums[right]) {
+                // 最小值一定在 mid 右边
+                left = mid + 1;
+            } else {
+                // 最小值在 mid 或 mid 左边
+                right = mid;
+            }
+        }
+
+        return nums[left];
+    }
+}
+易错点
+
+这里不是和 target 比较，而是：
+
+nums[mid] 和 nums[right]
+
+比较。
+
+nums[mid] > nums[right]：
+
+left = mid + 1;
+
+说明旋转点在右边。
+
+nums[mid] < nums[right]：
+
+right = mid;
+
+说明 mid 本身可能就是最小值，所以不能写 mid - 1。
+
+循环条件使用：
+
+left < right
+
+最终 left == right 时就是最小值所在位置。
+
+这道题元素没有重复，所以可以直接使用这种判断方式。
+结论
+
+比较 nums[mid] 和 nums[right] 判断最小值在哪一侧，并不断缩小区间。
+
+11. 寻找两个正序数组的中位数
+
+标签： 二分查找 / 分割线 / 数组中位数 / 困难
+
+原题
+
+给定两个大小分别为 m 和 n 的正序（从小到大）数组 nums1 和 nums2，找出并返回两个正序数组的中位数。
+
+要求时间复杂度：
+
+O(log(m+n))
+
+例如：
+
+输入：
+nums1 = [1,3]
+nums2 = [2]
+
+输出：
+2.0
+
+例如：
+
+输入：
+nums1 = [1,2]
+nums2 = [3,4]
+
+输出：
+2.5
+代码
+class Solution {
+
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+
+        // 保证 nums1 是较短的数组
+        if (nums1.length > nums2.length) {
+            return findMedianSortedArrays(nums2, nums1);
+        }
+
+        int m = nums1.length;
+        int n = nums2.length;
+
+        int left = 0;
+        int right = m;
+
+        while (left <= right) {
+
+            // nums1 的切分位置
+            int cut1 = left + (right - left) / 2;
+
+            // nums2 的切分位置
+            int cut2 = (m + n + 1) / 2 - cut1;
+
+            // nums1 左右两侧的边界
+            int left1 = cut1 == 0
+                    ? Integer.MIN_VALUE
+                    : nums1[cut1 - 1];
+
+            int right1 = cut1 == m
+                    ? Integer.MAX_VALUE
+                    : nums1[cut1];
+
+            // nums2 左右两侧的边界
+            int left2 = cut2 == 0
+                    ? Integer.MIN_VALUE
+                    : nums2[cut2 - 1];
+
+            int right2 = cut2 == n
+                    ? Integer.MAX_VALUE
+                    : nums2[cut2];
+
+            // 找到正确切分
+            if (left1 <= right2 && left2 <= right1) {
+
+                // 总长度为奇数
+                if ((m + n) % 2 == 1) {
+                    return Math.max(left1, left2);
+                }
+
+                // 总长度为偶数
+                return (Math.max(left1, left2)
+                        + Math.min(right1, right2)) / 2.0;
+            }
+
+            // nums1 切得太靠右
+            else if (left1 > right2) {
+                right = cut1 - 1;
+            }
+
+            // nums1 切得太靠左
+            else {
+                left = cut1 + 1;
+            }
+        }
+
+        return 0.0;
+    }
+}
+易错点
+二分的不是具体元素，而是 nums1 的切分位置 cut1。
+
+nums2 的切分位置由：
+
+cut2 = (m + n + 1) / 2 - cut1;
+
+计算得到。
+
+正确切分必须满足：
+
+left1 <= right2
+left2 <= right1
+
+如果 cut1 在数组边界，需要使用：
+
+Integer.MIN_VALUE
+Integer.MAX_VALUE
+
+处理不存在的元素。
+
+总长度奇数：
+
+max(left1, left2)
+
+总长度偶数：
+
+(max(left1,left2) + min(right1,right2)) / 2.0
+必须保证 nums1 是较短数组，这样二分范围更小，也方便处理。
+最容易出现的错误是把 right = cut1 - 1 和 right = cut1 搞混。
+结论
+
+二分寻找两个数组的正确分割线，使左半部分所有元素不大于右半部分，再根据奇偶计算中位数。
+
+今日三题总结
+矩阵查找
+→ 把二维问题转成一维二分
+
+旋转数组最小值
+→ 通过 nums[mid] 和 nums[right] 判断旋转点
+
+两个正序数组中位数
+→ 二分“分割线”，而不是二分具体元素
+
+今天这三道虽然都叫二分查找，但要特别区分：
+
+矩阵查找
+→ 二分“元素下标”
+
+旋转数组
+→ 二分“最小值所在区间”
+
+两个数组中位数
+→ 二分“切分位置”
+
+其中第 3 题是今天最值得重点复习的，它和普通二分已经有明显区别，核心要记住的就是：“找分割线 + 保证左边最大值 ≤ 右边最小值”。
+
 # 栈 / Stack
 
 1. 20. Valid Parentheses / 有效的括号
