@@ -6575,6 +6575,222 @@ append → 递归 → deleteCharAt
 left < n   → 加 '('
 right < left → 加 ')'
 
+6. 79. Word Search / 单词搜索
+
+难度: Medium / 中等 | 标签: Array, Backtracking, DFS, Matrix / 数组, 回溯, 深度优先, 矩阵
+
+原题 / Original Problem
+
+给定一个 m x n 二维字符网格 board 和字符串 word，判断 word 是否存在于网格中。
+
+单词必须由水平或垂直相邻的单元格组成，同一个单元格不能重复使用。
+
+代码 / Code
+class Solution {
+    public boolean exist(char[][] board, String word) {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (dfs(board, word, i, j, 0)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean dfs(
+        char[][] board,
+        String word,
+        int i,
+        int j,
+        int index
+    ) {
+        if (i < 0 || i >= board.length ||
+            j < 0 || j >= board[0].length) {
+            return false;
+        }
+
+        if (board[i][j] != word.charAt(index)) {
+            return false;
+        }
+
+        if (index == word.length() - 1) {
+            return true;
+        }
+
+        char temp = board[i][j];
+        board[i][j] = '#';
+
+        int[][] dirs = {
+            {1, 0},
+            {-1, 0},
+            {0, 1},
+            {0, -1}
+        };
+
+        for (int[] dir : dirs) {
+            int ni = i + dir[0];
+            int nj = j + dir[1];
+
+            if (dfs(board, word, ni, nj, index + 1)) {
+                board[i][j] = temp;
+                return true;
+            }
+        }
+
+        board[i][j] = temp;
+        return false;
+    }
+}
+核心思路 / Core Idea
+
+DFS + 回溯。
+
+每个格子都尝试作为起点：
+
+当前字符匹配
+→ 标记当前格子已使用
+→ 尝试上、下、左、右
+→ 递归寻找下一个字符
+→ 失败后恢复当前格子
+
+使用：
+
+{1,0}   下
+{-1,0}  上
+{0,1}   右
+{0,-1}  左
+复杂度 / Complexity
+时间：O(m * n * 4^L)，L 为 word.length()
+空间：O(L)
+易错点 / Pitfalls
+index 表示当前匹配到 word 的哪个字符
+递归下一层使用 index + 1
+同一个格子不能重复使用
+使用 '#' 临时标记后必须恢复
+越界要先判断
+index == word.length() - 1 时直接返回 true
+Deque/for 这里的方向数组中，dir 是一个 int[]
+关键词触发 / Triggers
+
+"单词搜索" / "上下左右相邻" / "不能重复使用格子" → DFS + 回溯 + 四方向搜索
+
+7. 131. Palindrome Partitioning / 分割回文串
+
+难度: Medium / 中等 | 标签: String, Backtracking, DFS / 字符串, 回溯, 深度优先
+
+原题 / Original Problem
+
+给定字符串 s，将其分割成一些子串，使每个子串都是回文串，返回所有可能的分割方案。
+
+示例:
+
+s = "aab"
+
+输出：
+[["a","a","b"],["aa","b"]]
+代码 / Code
+class Solution {
+    List<List<String>> result = new ArrayList<>();
+    List<String> path = new ArrayList<>();
+
+    public List<List<String>> partition(String s) {
+        backtracks(s, 0);
+        return result;
+    }
+
+    private void backtracks(String s, int index) {
+        if (index == s.length()) {
+            result.add(new ArrayList<>(path));
+            return;
+        }
+
+        for (int end = index; end < s.length(); end++) {
+            if (isPalindrome(s, index, end)) {
+                path.add(s.substring(index, end + 1));
+
+                backtracks(s, end + 1);
+
+                path.remove(path.size() - 1);
+            }
+        }
+    }
+
+    private boolean isPalindrome(String s, int left, int right) {
+        while (left < right) {
+            if (s.charAt(left) != s.charAt(right)) {
+                return false;
+            }
+
+            left++;
+            right--;
+        }
+
+        return true;
+    }
+}
+核心思路 / Core Idea
+
+回溯枚举每一种切分方式。
+
+index 表示：
+
+当前还没有分割的位置
+
+从 index 开始枚举 end：
+
+s[index ... end]
+
+如果这一段是回文串：
+
+加入 path
+→ 递归处理 end + 1
+→ 删除当前子串
+
+当：
+
+index == s.length()
+
+说明整个字符串已经分割完成，将当前 path 加入结果。
+
+复杂度 / Complexity
+时间：约 O(n * 2^n)
+空间：O(n)，不计算结果集
+易错点 / Pitfalls
+下一层必须是：
+backtracks(s, end + 1);
+
+不是 index + 1
+
+子串：
+s.substring(index, end + 1)
+substring 右边界不包含，所以需要 end + 1
+只有回文子串才能加入 path
+回溯后：
+path.remove(path.size() - 1);
+保存结果时必须：
+new ArrayList<>(path)
+
+不能直接保存 path
+
+单个字符天然是回文串
+关键词触发 / Triggers
+
+"分割回文串" / "所有可能的分割方案" → 回溯 + 枚举结束位置 + 回文判断
+
+核心：
+
+s[index...end]
+↓
+判断回文
+↓
+选择
+↓
+递归 end+1
+↓
+回溯
+
 # 双指针问题 / Two Pointers
 
 1. 283. Move Zeroes / 移动零
