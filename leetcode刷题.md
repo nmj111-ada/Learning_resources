@@ -6791,6 +6791,102 @@ s[index...end]
 ↓
 回溯
 
+8. 51 N 皇后
+
+### 原题
+
+在 `n × n` 棋盘上放置 `n` 个皇后，使任意两个皇后不能处于同一行、同一列或同一条对角线上。
+
+### 代码
+
+```java
+class Solution {
+    List<List<String>> result = new ArrayList<>();
+
+    public List<List<String>> solveNQueens(int n) {
+        char[][] board = new char[n][n];
+
+        for (int i = 0; i < n; i++) {
+            Arrays.fill(board[i], '.');
+        }
+
+        boolean[] cols = new boolean[n];
+        boolean[] diag1 = new boolean[2 * n - 1];
+        boolean[] diag2 = new boolean[2 * n - 1];
+
+        backtrack(board, 0, cols, diag1, diag2);
+        return result;
+    }
+
+    private void backtrack(char[][] board, int row,
+                           boolean[] cols,
+                           boolean[] diag1,
+                           boolean[] diag2) {
+        if (row == board.length) {
+            List<String> path = new ArrayList<>();
+            for (char[] chars : board) {
+                path.add(new String(chars));
+            }
+            result.add(path);
+            return;
+        }
+
+        int n = board.length;
+
+        for (int col = 0; col < n; col++) {
+            int d1 = row - col + n - 1;
+            int d2 = row + col;
+
+            if (cols[col] || diag1[d1] || diag2[d2]) {
+                continue;
+            }
+
+            board[row][col] = 'Q';
+            cols[col] = true;
+            diag1[d1] = true;
+            diag2[d2] = true;
+
+            backtrack(board, row + 1, cols, diag1, diag2);
+
+            board[row][col] = '.';
+            cols[col] = false;
+            diag1[d1] = false;
+            diag2[d2] = false;
+        }
+    }
+}
+```
+
+### 核心思路
+
+逐行放皇后，用**回溯**枚举每一行的位置。
+
+用三个 `boolean` 数组快速判断：
+
+* `cols[col]`：列是否冲突
+* `diag1[row-col+n-1]`：左上到右下对角线
+* `diag2[row+col]`：右上到左下对角线
+
+### 复杂度
+
+时间：约 `O(N!)`
+空间：`O(N²)`
+
+### 易错点
+
+* `row - col` 可能是负数，所以要 `+ n - 1`
+* `diag1`、`diag2` 长度都是 `2*n-1`
+* `result.add()` 时必须复制当前棋盘状态
+* 回溯后要恢复 `board` 和三个标记数组
+
+### 关键词触发
+
+`N皇后` → **逐行 + 回溯 + 列/对角线剪枝**
+
+### 标签
+
+`回溯` `DFS` `棋盘` `剪枝`
+
 # 双指针问题 / Two Pointers
 
 1. 283. Move Zeroes / 移动零
