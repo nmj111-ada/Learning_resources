@@ -3899,6 +3899,90 @@ mergeTwoLists 每次比较两个链表当前头的 val，取小的接上，递�
 "合并K个有序链表" → 分治归并（两两合并） 或 优先队列（k个头进堆）
 
 
+15. BM2 链表内指定区间反转
+
+## 原题 / Original Problem
+
+将链表第 m 到第 n 个节点之间的区间反转，其余部分保持不变。
+
+例如：
+
+1 → 2 → 3 → 4 → 5
+
+m=2,n=4
+
+变成：
+
+1 → 4 → 3 → 2 → 5
+
+## 代码 / Code
+
+```java
+public ListNode reverseBetween(ListNode head, int m, int n) {
+    ListNode dummy = new ListNode(-1);
+    dummy.next = head;
+
+    ListNode pre = dummy;
+
+    for (int i = 1; i < m; i++) {
+        pre = pre.next;
+    }
+
+    ListNode start = pre.next;
+
+    ListNode cur = start;
+    ListNode prev = null;
+
+    for (int i = 0; i < n - m + 1; i++) {
+        ListNode next = cur.next;
+        cur.next = prev;
+        prev = cur;
+        cur = next;
+    }
+
+    pre.next = prev;
+    start.next = cur;
+
+    return dummy.next;
+}
+```
+
+## 核心思路 / Core Idea
+
+找区间前一个节点 `pre` → 反转 m~n → 重新连接。
+
+反转部分直接使用普通反转链表的：`next` → `cur.next = prev` → `prev = cur` → `cur = next`，只是反转次数变成 `n - m + 1`。
+
+最后：
+
+```java
+pre.next = prev;
+start.next = cur;
+```
+
+重新接回前后链表。
+
+## 复杂度 / Complexity
+
+时间：O(n)
+空间：O(1)
+
+## 易错点 / My Mistakes
+
+* `dummy` 用来统一处理 m=1 的情况
+* `pre` 是第 m 个节点的前一个节点
+* `start` 是原来的第 m 个节点，反转后它会变成区间尾节点
+* 反转前必须保存 `next`
+* 最后别忘记重新连接前后部分
+
+## 关键词触发 / Triggers
+
+链表指定区间反转 → **dummy + pre + start + 局部反转 + 重新连接**
+
+## 标签
+
+`链表` `双指针` `指针操作` `原地反转`
+
 # 二叉树 / Binary Tree
 
 1. 94. Binary Tree Inorder Traversal / 二叉树的中序遍历

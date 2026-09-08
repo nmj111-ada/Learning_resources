@@ -711,3 +711,99 @@ public class Main {
 #### 标签
 
 `ACM` `队列` `FIFO` `模拟` `Scanner` `输入输出`
+
+### 4. 赛车排名 / 拓扑排序
+
+#### 题目 / Problem
+
+给出 N 个队伍以及 M 场比赛结果，P1 赢了 P2 表示 P1 的排名必须在 P2 前面。若有多个合法排名，要求编号小的队伍优先。
+
+#### 代码 / Code
+
+```java
+import java.io.*;
+import java.util.*;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        int n = Integer.parseInt(st.nextToken());
+        int m = Integer.parseInt(st.nextToken());
+
+        List<Integer>[] graph = new ArrayList[n + 1];
+
+        for (int i = 1; i <= n; i++) {
+            graph[i] = new ArrayList<>();
+        }
+
+        int[] indegree = new int[n + 1];
+
+        // P1 赢 P2：P1 -> P2
+        for (int i = 0; i < m; i++) {
+            st = new StringTokenizer(br.readLine());
+
+            int p1 = Integer.parseInt(st.nextToken());
+            int p2 = Integer.parseInt(st.nextToken());
+
+            graph[p1].add(p2);
+            indegree[p2]++;
+        }
+
+        // 小根堆：多个入度为 0 的队伍时，编号小的优先
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+
+        for (int i = 1; i <= n; i++) {
+            if (indegree[i] == 0) {
+                pq.offer(i);
+            }
+        }
+
+        StringBuilder result = new StringBuilder();
+
+        while (!pq.isEmpty()) {
+            int cur = pq.poll();
+            result.append(cur);
+
+            for (int next : graph[cur]) {
+                indegree[next]--;
+
+                if (indegree[next] == 0) {
+                    pq.offer(next);
+                }
+            }
+        }
+
+        System.out.println(result);
+    }
+}
+```
+
+#### 核心思路 / Core Idea
+
+把 P1 赢 P2 转换成有向边 P1 → P2，用 `indegree` 记录每个队伍有多少个前置队伍。
+
+每次选择：**入度 = 0 且编号最小**的队伍，加入答案，然后删除它指向的边，更新入度。
+
+#### 复杂度 / Complexity
+
+时间：O((N + M) log N)
+空间：O(N + M)
+
+#### 易错点 / Pitfalls
+
+* `indegree[1] ~ indegree[n]` 对应队伍 1 ~ n，所以数组开 n + 1
+* P1 赢 P2 是 `graph[p1].add(p2)`
+* 多个入度为 0 时，要用 PriorityQueue 保证小编号优先
+* 本题是 ACM 输入输出，不能把样例数据写死
+
+#### 关键词触发 / Triggers
+
+必须在前面 / 依赖关系 / 合法顺序 → **拓扑排序**
+编号小的优先 → **小根堆**
+
+#### 标签
+
+`ACM` `图` `拓扑排序` `入度` `PriorityQueue` `贪心`
