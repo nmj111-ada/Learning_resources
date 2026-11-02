@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: tlias-web-management
+    #数据库的连接信息
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # 文件上传（必须缩进在 spring 下面！）
+  servlet:
+    multipart:
+      #最大单个文件大小
+      max-file-size: 10MB
+      #最大请求大小（包括所有文件和表单数据）
+      max-request-size: 100MB
+
+#Mybatis的相关配置
+mybatis:
+  configuration:
+   #开启驼峰命名开关
+   map-underscore-to-camel-case: true
+   log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+

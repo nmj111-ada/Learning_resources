@@ -1,0 +1,36 @@
+# IDE and build output
+.idea/
+.vscode/
+*.iml
+**/target/
+**/logs/
+*.log
+
+# Local configuration and credentials
+**/application*.yaml
+**/application*.yml
+**/application*.properties
+!**/application.example.yaml
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Database exports, local databases and backups
+*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.zip
+*.7z
+
+# Local uploaded files
+**/uploads/
+**/images/
