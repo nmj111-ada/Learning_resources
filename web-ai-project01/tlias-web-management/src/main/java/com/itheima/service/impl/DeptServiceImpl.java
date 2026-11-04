@@ -1,6 +1,8 @@
 package com.itheima.service.impl;
 
+import com.itheima.exception.DeptHasEmpException;
 import com.itheima.mapper.DeptMapper;
+import com.itheima.mapper.EmpMapper;
 import com.itheima.pojo.Dept;
 import com.itheima.service.DeptService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,9 @@ public class DeptServiceImpl implements DeptService {
 
     @Autowired
     private DeptMapper deptMapper;
+    @Autowired
+    private EmpMapper empMapper;
+
     //查询所有部门数据
     public List<Dept> findAll() {
         return deptMapper.findAll();
@@ -21,6 +26,10 @@ public class DeptServiceImpl implements DeptService {
 
     //根据id删除部门数据
     public void deleteById(Integer id) {
+        Integer count = empMapper.countByDeptId(id);
+        if(count > 0){
+            throw new DeptHasEmpException("对不起，当前部门下有员工，不能直接删除！");
+        }
         deptMapper.deleteById(id);
     }
 

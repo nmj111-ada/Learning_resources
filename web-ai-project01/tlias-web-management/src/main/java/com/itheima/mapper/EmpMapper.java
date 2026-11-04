@@ -48,4 +48,8 @@ public interface EmpMapper {
     //查询全部员工姓名
     @Select("select id, name from emp")
     List<Emp> getAllName();
+
+    //统计某部门下的员工数量
+    @Select("select count(*) from emp where dept_id = #{deptId}")
+    Integer countByDeptId(@Param("deptId") Integer deptId);
 }

@@ -4,6 +4,8 @@ import com.itheima.pojo.Clazz;
 import com.itheima.pojo.ClazzQueryParam;
 import com.itheima.pojo.PageResult;
 
+import java.util.List;
+
 public interface ClazzService {
     //分页查询
     PageResult<Clazz> page(ClazzQueryParam clazzQueryParam);
@@ -15,4 +17,7 @@ public interface ClazzService {
     void update(Clazz clazz);
     //删除
     void delete(Long id);
+
+    //查询全部课程信息
+    List<Clazz> getClazzName();
 }

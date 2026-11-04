@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mapper.StudentMapper">
+    <!-- 分页查询 -->
+    <select id="list" resultType="com.itheima.pojo.Student">
+        select
+        student.*, clazz.name as clazzName
+        from student left join clazz on student.clazz_id = clazz.id
+        <where>
+            <!--1.姓名模糊查询-->
+            <if test="name != null and name != ''">
+                and student.name like CONCAT('%', #{name}, '%')
+            </if>
+            <!--2.最高学历模糊查询-->
+            <if test="degree != null and degree != ''">
+                and degree = #{degree}
+            </if>
+            <!--3.班级模糊查询-->
+            <if test="clazzId != null and clazzId != ''">
+                and clazz_id = #{clazzId}
+            </if>
+        </where>
+        order by update_time desc
+    </select>
+
+    <!-- 统计学生学历信息 -->
+    <select id="countStudentDegreeData" resultType="java.util.Map">
+        select
+        (case when degree = 1 then '初中'
+            when degree = 2 then '高中'
+            when degree = 3 then '大专'
+            when degree = 4 then '本科'
+            when degree = 5 then '硕士'
+            when degree = 6 then '博士'
+        end) as name,
+        count(*) as value
+        from student
+        group by degree order by value;
+    </select>
+
+</mapper>

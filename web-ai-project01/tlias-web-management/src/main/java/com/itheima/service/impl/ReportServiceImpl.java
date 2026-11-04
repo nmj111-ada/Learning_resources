@@ -1,6 +1,8 @@
 package com.itheima.service.impl;
 
+import com.itheima.mapper.ClazzMapper;
 import com.itheima.mapper.EmpMapper;
+import com.itheima.mapper.StudentMapper;
 import com.itheima.pojo.JobOption;
 import com.itheima.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,11 @@ public class ReportServiceImpl implements ReportService {
     //统计员工职位人数
     @Autowired
     private EmpMapper empMapper;
+    @Autowired
+    private StudentMapper studentMapper;
+    @Autowired
+    private ClazzMapper clazzMapper;
+
 
     @Override
     public JobOption getEmpJobData() {
@@ -26,8 +33,22 @@ public class ReportServiceImpl implements ReportService {
         return new JobOption(jobList,dataList);
     }
 
+    //获取员工性别数据
     @Override
     public List<Map<String, Object>> getEmpGenderData() {
+
         return empMapper.countEmpGenderData();
+    }
+
+    //获取学生学历信息
+    @Override
+    public List<Map<String, Object>> getStudentDegreeData() {
+        return studentMapper.countStudentDegreeData();
+    }
+
+    //获取学生人数信息
+    @Override
+    public List<Map<String, Object>> getStudentCountData() {
+        return clazzMapper.countStudentNum();
     }
 }

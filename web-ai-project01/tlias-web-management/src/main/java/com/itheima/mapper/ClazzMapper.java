@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface ClazzMapper {
@@ -39,4 +40,11 @@ public interface ClazzMapper {
     //根据id删除课程信息
     @Delete("delete from clazz where id = #{id}")
     void delete(Long id);
+
+    //查询全部课程名字
+    @Select("select id, name from clazz")
+    List<Clazz> getClazzName();
+
+    //统计班级人数
+    List<Map<String, Object>> countStudentNum();
 }

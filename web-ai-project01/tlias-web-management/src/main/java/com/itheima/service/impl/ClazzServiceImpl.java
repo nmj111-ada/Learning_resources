@@ -65,4 +65,10 @@ public class ClazzServiceImpl implements ClazzService {
     public void delete(Long id) {
         clazzMapper.delete(id);
     }
+
+    //查询全部课程信息
+    @Override
+    public List<Clazz> getClazzName() {
+        return clazzMapper.getClazzName();
+    }
 }

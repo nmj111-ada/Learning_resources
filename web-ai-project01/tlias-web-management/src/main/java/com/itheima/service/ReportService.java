@@ -11,4 +11,8 @@ public interface ReportService {
     JobOption getEmpJobData();
     //获取性别数据
     List<Map<String, Object>> getEmpGenderData();
+    //获取学生学历信息
+    List<Map<String, Object>> getStudentDegreeData();
+    //获取学生人数信息
+    List<Map<String, Object>> getStudentCountData();
 }

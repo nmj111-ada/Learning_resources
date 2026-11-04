@@ -26,5 +26,10 @@ public class GlobalExceptionHandler {
         String err = arr[2];
         return Result.error(err + "已存在");
     }
-    
+    // 删除部门时如果部门内有员工就提示
+    @ExceptionHandler(DeptHasEmpException.class)
+    public Result handleDeptHasEmpException(DeptHasEmpException e){
+        log.error("异常信息", e);
+        return Result.error(e.getMessage());
+    }
 }
