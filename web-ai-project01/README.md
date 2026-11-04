@@ -1,6 +1,6 @@
 # Tlias Web 练习项目
 
-本目录收录 `web-ai-project01` 中的 `tlias-web-management` 后端练习项目，包含部门管理、员工管理、分页查询和文件上传等练习代码。
+本目录收录 `web-ai-project01` 中的 `tlias-web-management` 后端练习项目，包含部门管理、员工管理、班级管理、统计报表、分页查询和文件上传等练习代码。
 
 ## 目录
 

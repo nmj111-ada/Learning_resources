@@ -22,7 +22,7 @@ public class DeptController {
 
     //@RequestMapping(value = "/depts",method = RequestMethod.GET)//method指定请求方式
     //查询全部部门
-    @GetMapping("/depts")
+    @GetMapping({"/depts", "/depts/list"})
     public Result list(){
         log.info("查询全部部门数据");
         List<Dept> deptList = deptService.findAll();

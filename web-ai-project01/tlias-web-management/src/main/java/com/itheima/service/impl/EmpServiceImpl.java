@@ -98,7 +98,12 @@ public class EmpServiceImpl implements EmpService {
             });
             empExprMapper.insertBatch(exprList);
         }
-
-
     }
+
+    //查询全部员工姓名
+    @Override
+    public List<Emp> getAllName() {
+        return empMapper.getAllName();
+    }
+
 }

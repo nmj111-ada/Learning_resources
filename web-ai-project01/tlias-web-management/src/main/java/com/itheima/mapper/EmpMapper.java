@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 //操作员工基本信息
 @Mapper
@@ -37,4 +38,14 @@ public interface EmpMapper {
 
     //根据ID修改员工基本信息
     void updateById(Emp emp);
+
+    //统计员工职位人数
+    List<Map<String,Object>> countEmpJobDate();
+
+    //统计员工性别人数
+    List<Map<String,Object>> countEmpGenderData();
+
+    //查询全部员工姓名
+    @Select("select id, name from emp")
+    List<Emp> getAllName();
 }
