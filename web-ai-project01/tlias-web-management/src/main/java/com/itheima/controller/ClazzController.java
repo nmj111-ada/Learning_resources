@@ -1,5 +1,7 @@
 package com.itheima.controller;
 
+import com.itheima.anno.Log;
+
 import com.itheima.pojo.*;
 import com.itheima.service.ClazzService;
 import com.itheima.service.EmpService;
@@ -26,6 +28,8 @@ public class ClazzController {
     }
 
     //新增课程信息接口
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PostMapping
     public Result add(@RequestBody Clazz clazz) {
         log.info("新增班级信息：{}", clazz);
@@ -42,6 +46,8 @@ public class ClazzController {
         return Result.success(clazz);
     }
     //2.修改信息
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PutMapping
     public Result update(@RequestBody Clazz clazz) {
         log.info("修改课程信息：{}", clazz);
@@ -50,6 +56,8 @@ public class ClazzController {
     }
 
     //删除课程信息
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable Long id) {
         log.info("删除课程信息：{}", id);

@@ -1,5 +1,7 @@
 package com.itheima.controller;
 
+import com.itheima.anno.Log;
+
 import com.itheima.pojo.Emp;
 import com.itheima.pojo.EmpQueryParam;
 import com.itheima.pojo.PageResult;
@@ -32,6 +34,8 @@ public class EmpController {
     }
 
     //新增员工
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PostMapping
     public Result save(@RequestBody Emp emp){
         log.info("新增员工：{}", emp);
@@ -47,6 +51,8 @@ public class EmpController {
 //        return Result.success();
 //    }
     //删除员工信息-List集合
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @DeleteMapping
     public Result delete(@RequestParam List<Integer> ids) {
         log.info("删除员工信息：{}", ids);
@@ -63,6 +69,8 @@ public class EmpController {
     }
 
     //修改员工
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PutMapping
     public Result update(Emp emp) {
         log.info("修改员工： {}",emp);

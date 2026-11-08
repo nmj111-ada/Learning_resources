@@ -4,10 +4,8 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.itheima.mapper.EmpExprMapper;
 import com.itheima.mapper.EmpMapper;
-import com.itheima.pojo.Emp;
-import com.itheima.pojo.EmpExpr;
-import com.itheima.pojo.EmpQueryParam;
-import com.itheima.pojo.PageResult;
+import com.itheima.pojo.*;
+import com.itheima.util.JwtUtils;
 import com.itheima.service.EmpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +22,9 @@ import java.util.List;
 public class EmpServiceImpl implements EmpService {
     @Autowired
     private EmpMapper empMapper;
+    // 登录成功后生成令牌，供前端后续请求携带。
+    @Autowired
+    private JwtUtils jwtUtils;
     @Autowired
     private EmpExprMapper empExprMapper;
     //分页查询方法
@@ -106,4 +107,16 @@ public class EmpServiceImpl implements EmpService {
         return empMapper.getAllName();
     }
 
+
+    //登录方法
+    @Override
+    public LoginInfo login(Emp emp) {
+        //1.调用mapper接口，查询
+        Emp e = empMapper.selectByUsernameAndPassword(emp);
+        //2.判断并封装LoginInfo并返回
+        if(e != null){
+            return new LoginInfo(e.getId(), e.getUsername(), e.getName(), jwtUtils.generateToken(e.getId()));
+        }
+        return null;
+    }
 }

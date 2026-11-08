@@ -1,5 +1,7 @@
 package com.itheima.controller;
 
+import com.itheima.anno.Log;
+
 import com.itheima.pojo.PageResult;
 import com.itheima.pojo.Result;
 import com.itheima.pojo.Student;
@@ -25,6 +27,8 @@ public class StudentController {
 
     //新增学生
     //显示班级进行选择
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PostMapping
     public Result add(@RequestBody Student student) {
         log.info("新增学生信息： {}", student);
@@ -41,6 +45,8 @@ public class StudentController {
     }
 
     //修改学生信息
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PutMapping
     public Result update(@RequestBody Student student) {
         log.info("修改学生信息： {}", student);
@@ -49,6 +55,8 @@ public class StudentController {
     }
 
     //删除学生信息
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable Long id) {
         log.info("删除学生信息：{}", id);
@@ -57,6 +65,8 @@ public class StudentController {
     }
 
     //学生违纪处理
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PutMapping("/violation/{id}/{score}")
     public Result violation(@PathVariable Long id, @PathVariable Integer score) {
         log.info("学生违纪处理：{}", id);

@@ -1,5 +1,7 @@
 package com.itheima.controller;
 
+import com.itheima.anno.Log;
+
 import com.itheima.pojo.Dept;
 import com.itheima.pojo.Result;
 import com.itheima.service.DeptService;
@@ -30,6 +32,8 @@ public class DeptController {
     }
 
     //删除部门
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @DeleteMapping("/depts")
     /*
     方式1：手动转换参数，通过request对象获取参数
@@ -48,6 +52,8 @@ public class DeptController {
     }
 
     //增加
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PostMapping("/depts")
     public Result add(@RequestBody Dept dept){
         System.out.println("增加部门数据"+dept);
@@ -64,6 +70,8 @@ public class DeptController {
     }
 
     //修改部门
+    // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
+    @Log
     @PutMapping("/depts")
     public Result update(@RequestBody Dept dept){
         System.out.println("修改部门数据"+dept);

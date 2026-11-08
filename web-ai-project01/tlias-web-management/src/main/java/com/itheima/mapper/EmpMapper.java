@@ -52,4 +52,8 @@ public interface EmpMapper {
     //统计某部门下的员工数量
     @Select("select count(*) from emp where dept_id = #{deptId}")
     Integer countByDeptId(@Param("deptId") Integer deptId);
+
+    //根据用户名和密码查询员工
+    @Select("select id, username, name from emp where username = #{username} and password = #{password}")
+    Emp selectByUsernameAndPassword(Emp emp);
 }
