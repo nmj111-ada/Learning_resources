@@ -19,12 +19,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public Result handleDuplicateKeyException(DuplicateKeyException e){
         log.error("异常信息{}",e);
-        String message = e.getMessage();
-        int i = message.indexOf("Duplicate entry");
-        String errMsg = message.substring(i);
-        String[] arr = errMsg.split(" ");
-        String err = arr[2];
-        return Result.error(err + "已存在");
+        return Result.error("名称、用户名、学号或手机号已存在，请检查后重试");
+    }
+    // 可预期的业务校验直接向前端返回提示。
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Result handleBusinessException(IllegalArgumentException e) {
+        return Result.error(e.getMessage());
     }
     // 删除部门时如果部门内有员工就提示
     @ExceptionHandler(DeptHasEmpException.class)

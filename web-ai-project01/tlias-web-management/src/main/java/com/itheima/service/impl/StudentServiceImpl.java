@@ -59,6 +59,13 @@ public class StudentServiceImpl implements StudentService {
         studentMapper.delete(id);
     }
 
+    // 批量删除通过一条 SQL 完成。
+    @Override
+    public void deleteByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) throw new IllegalArgumentException("请先选择学生");
+        studentMapper.deleteByIds(ids);
+    }
+
     //学生违纪处理
     @Override
     public void violation(Long id, Integer score) {

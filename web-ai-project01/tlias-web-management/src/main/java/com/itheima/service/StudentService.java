@@ -25,6 +25,9 @@ public interface StudentService {
     //删除学生信息
     void delete(Long id);
 
+    // 批量删除学生，单条删除也传一个 ID。
+    void deleteByIds(java.util.List<Long> ids);
+
     //学生违纪处理
     void violation(Long id, Integer score);
 }

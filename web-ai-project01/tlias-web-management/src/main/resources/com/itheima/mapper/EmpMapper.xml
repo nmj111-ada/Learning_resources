@@ -7,6 +7,9 @@
     <update id="updateById">
         update emp
         <set>
+            username = #{username},
+            entry_date = #{entryDate},
+            update_time = #{updateTime},
             <if test="name != null and name != ''">
                 name = #{name},
             </if>
@@ -19,9 +22,8 @@
             <if test="job != null">
                 job = #{job},
             </if>
-            <if test="salary != null">
-                salary = #{salary},
-            </if>
+            <!-- 编辑表单允许清空薪资，null 也必须写入。 -->
+            salary = #{salary},
             <if test="image != null and image != ''">
                 image = #{image},
             </if>
@@ -51,6 +53,7 @@
     <!--定义ResultMap-->
     <resultMap id="empResultMap" type="com.itheima.pojo.Emp">
         <id column="id" property="id"/>
+        <result column="username" property="username"/>
         <result column="name" property="name"/>
         <result column="gender" property="gender"/>
         <result column="phone" property="phone"/>
@@ -66,16 +69,16 @@
         <collection property="exprList" ofType="com.itheima.pojo.EmpExpr">
             <id column="expr_id" property="id"/>
             <result column="emp_id" property="empId"/>
-            <result column="start_date" property="begin"/>
-            <result column="end_date" property="end"/>
+            <result column="expr_begin" property="begin"/>
+            <result column="expr_end" property="end"/>
             <result column="company" property="company"/>
-            <result column="job" property="job"/>
+            <result column="expr_job" property="job"/>
         </collection>
     </resultMap>
 
     <!--根据员工ID查询员工基本信息以及工作经历信息-->
     <select id="getById" resultMap="empResultMap">
-        select e.*, ee.*
+        select e.*, ee.id expr_id, ee.emp_id, ee.begin expr_begin, ee.end expr_end, ee.company, ee.job expr_job
         from emp e left join emp_expr ee on e.id = ee.emp_id
         where e.id = #{id}
     </select>

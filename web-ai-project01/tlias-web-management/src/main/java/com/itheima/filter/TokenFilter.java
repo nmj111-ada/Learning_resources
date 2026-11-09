@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /** 请求先经过此过滤器：校验 token 请求头，再把操作人交给后续 Controller/AOP。 */
+// 前端已完成登录功能，所有业务接口恢复令牌校验。
 @Component
 @RequiredArgsConstructor
 public class TokenFilter extends OncePerRequestFilter {

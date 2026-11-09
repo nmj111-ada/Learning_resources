@@ -10,6 +10,7 @@ import java.util.List;
 public class Emp {
     private Integer id; //ID,主键
     private String username; //用户名
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private String password; //密码
     private String name; //姓名
     private Integer gender; //性别, 1:男, 2:女

@@ -53,6 +53,10 @@ public interface EmpMapper {
     @Select("select count(*) from emp where dept_id = #{deptId}")
     Integer countByDeptId(@Param("deptId") Integer deptId);
 
+    // 原密码匹配时才修改当前登录人的密码。
+    @Update("update emp set password = #{newPassword}, update_time = current_timestamp where id = #{id} and password = #{oldPassword}")
+    int changePassword(@Param("id") Integer id, @Param("oldPassword") String oldPassword, @Param("newPassword") String newPassword);
+
     //根据用户名和密码查询员工
     @Select("select id, username, name from emp where username = #{username} and password = #{password}")
     Emp selectByUsernameAndPassword(Emp emp);

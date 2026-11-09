@@ -2,11 +2,18 @@
   import { ref } from 'vue'
   import { loginApi } from '@/views/api/login.js'
 import { ElMessage } from 'element-plus'
+import { useRouter, useRoute } from 'vue-router'
+const router=useRouter()
+const route=useRoute()
+const loading=ref(false)
 
   let loginForm = ref({username:'', password:''})
-  
+
   //登录
   const login = async () => {
+    if(loading.value) return
+    if(!loginForm.value.username.trim() || !loginForm.value.password) return ElMessage.warning('请输入用户名和密码')
+    loading.value=true
     try {
       const result = await loginApi(loginForm.value)
       if (result.code === 1) {
@@ -15,12 +22,14 @@ import { ElMessage } from 'element-plus'
         //2.存储当前登录员工信息
         localStorage.setItem('loginUser',JSON.stringify(result.data))
         // 3.跳转到首页
-        window.location.href = '/index'
+        router.replace(typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') && !route.query.redirect.startsWith('//') ? route.query.redirect : '/index')
       } else {
-        alert('登录失败：' + result.msg)
+        ElMessage.error('登录失败：' + result.msg)
       }
     } catch (error) {
-      console.error('登录请求失败：', error)
+      // 请求错误由拦截器统一提示。
+    } finally {
+      loading.value=false
     }
   }
   //重置
@@ -40,11 +49,11 @@ import { ElMessage } from 'element-plus'
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="loginForm.password" placeholder="请输入密码"></el-input>
+          <el-input type="password" v-model="loginForm.password" show-password @keyup.enter="login" placeholder="请输入密码"></el-input>
         </el-form-item>
 
         <el-form-item>
-          <el-button class="button" type="primary" @click="login">登 录</el-button>
+          <el-button class="button" type="primary"  :loading="loading" @click="login">登 录</el-button>
           <el-button class="button" type="info" @click="clear">重 置</el-button>
         </el-form-item>
       </el-form>

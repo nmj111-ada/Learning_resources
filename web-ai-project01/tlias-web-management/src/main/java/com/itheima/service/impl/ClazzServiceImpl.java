@@ -19,6 +19,8 @@ import java.util.List;
 public class ClazzServiceImpl implements ClazzService {
     @Autowired
     private ClazzMapper clazzMapper;
+    @Autowired
+    private com.itheima.mapper.StudentMapper studentMapper;
 
     //分页查询方法
     @Override
@@ -63,6 +65,8 @@ public class ClazzServiceImpl implements ClazzService {
     //根据id删除课程
     @Override
     public void delete(Long id) {
+        // 班级中还有学生时禁止删除，避免学生失去所属班级。
+        if (studentMapper.countByClazzId(id) > 0) throw new IllegalArgumentException("该班级下还有学生，不能删除");
         clazzMapper.delete(id);
     }
 

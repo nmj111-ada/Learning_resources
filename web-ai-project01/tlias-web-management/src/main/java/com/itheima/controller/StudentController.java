@@ -57,10 +57,9 @@ public class StudentController {
     //删除学生信息
     // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
     @Log
-    @DeleteMapping("/{id}")
-    public Result delete(@PathVariable Long id) {
-        log.info("删除学生信息：{}", id);
-        studentService.delete(id);
+    @DeleteMapping("/{ids}")
+    public Result delete(@PathVariable java.util.List<Long> ids) {
+        studentService.deleteByIds(ids);
         return Result.success();
     }
 
@@ -70,6 +69,7 @@ public class StudentController {
     @PutMapping("/violation/{id}/{score}")
     public Result violation(@PathVariable Long id, @PathVariable Integer score) {
         log.info("学生违纪处理：{}", id);
+        if (score == null || score < 1 || score > 100) throw new IllegalArgumentException("违纪扣分必须为1-100的整数");
         studentService.violation(id, score);
         return Result.success();
     }

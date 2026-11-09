@@ -72,9 +72,16 @@ public class EmpController {
     // 此写操作成功返回后，由日志切面统一记录操作人、参数和耗时。
     @Log
     @PutMapping
-    public Result update(Emp emp) {
+    public Result update(@RequestBody Emp emp) {
         log.info("修改员工： {}",emp);
         empService.update(emp);
+        return Result.success();
+    }
+
+    // 修改密码不打印请求、不记录带密码的操作日志。
+    @PutMapping("/password")
+    public Result changePassword(@RequestBody com.itheima.pojo.PasswordChange change) {
+        empService.changePassword(change);
         return Result.success();
     }
 

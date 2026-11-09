@@ -72,9 +72,9 @@ public class EmpServiceImpl implements EmpService {
     @Override
     public void deleteByIds(List<Integer> ids) {
         //1.批量删除员工基本信息
-        empMapper.deleteByIds(ids);
-        //2.批量删除员工的工作经历信息
         empExprMapper.deleteByEmpIds(ids);
+        // 先删除经历再删除员工，兼容数据库外键约束。
+        empMapper.deleteByIds(ids);
     }
 
     @Override
@@ -84,6 +84,7 @@ public class EmpServiceImpl implements EmpService {
 
     //修改员工信息
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void update(Emp emp) {
         //1.根据id修改员工基本信息
         emp.setUpdateTime(LocalDateTime.now());
@@ -107,6 +108,18 @@ public class EmpServiceImpl implements EmpService {
         return empMapper.getAllName();
     }
 
+
+    // 使用令牌中的账号 ID，不能修改其他人的密码。
+    @Override
+    public void changePassword(PasswordChange change) {
+        Integer id = com.itheima.util.CurrentHolder.getCurrentId();
+        if (id == null) throw new IllegalArgumentException("请先登录");
+        if (change.getOldPassword() == null || change.getNewPassword() == null || change.getNewPassword().length() < 6 || change.getNewPassword().length() > 20)
+            throw new IllegalArgumentException("新密码长度必须为6-20位");
+        if (change.getOldPassword().equals(change.getNewPassword())) throw new IllegalArgumentException("新密码不能和原密码相同");
+        if (empMapper.changePassword(id, change.getOldPassword(), change.getNewPassword()) != 1)
+            throw new IllegalArgumentException("原密码不正确");
+    }
 
     //登录方法
     @Override

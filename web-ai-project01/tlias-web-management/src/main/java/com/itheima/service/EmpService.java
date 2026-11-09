@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface EmpService {
+    // 修改当前账号密码。
+    void changePassword(com.itheima.pojo.PasswordChange change);
 
     //分页查询方法
     PageResult<Emp> page(EmpQueryParam empQueryParam);

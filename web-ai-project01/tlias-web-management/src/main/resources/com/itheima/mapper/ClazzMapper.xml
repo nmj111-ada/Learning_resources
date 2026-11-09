@@ -31,6 +31,6 @@
     <select id="countStudentNum" resultType="java.util.Map">
         select clazz.name as name, count(student.clazz_id) as value
         from clazz left join student on clazz.id = student.clazz_id
-        group by name
+        group by clazz.id, clazz.name order by clazz.id
     </select>
 </mapper>

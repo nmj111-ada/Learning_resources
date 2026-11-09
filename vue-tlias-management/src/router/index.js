@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/views/layout/index.vue'
+import { getLoginUser } from '@/views/utils/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -72,6 +73,11 @@ const router = createRouter({
       redirect: '/index'
     }
   ]
+})
+
+// 未登录时先进入登录页，登录完成后回到原来的页面。
+router.beforeEach(to => {
+  if(to.path !== '/login' && !getLoginUser()?.token) return {path:'/login',query:{redirect:to.fullPath}}
 })
 
 export default router

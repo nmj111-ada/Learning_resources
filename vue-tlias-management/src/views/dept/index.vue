@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { queryAllApi, addApi, queryByIdApi, updateApi, deleteApi } from '@/views/api/dept.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -26,6 +26,7 @@ const search = async() => {
 }
 
 const deptList = ref([])
+const saving = ref(false)
 const formTitle = ref('')
 
 //dialog对话框
@@ -39,14 +40,16 @@ const addDept = () => {
   dept.value = { name: '' } // 重置部门信息
   dialogFormVisible.value = true
   formTitle.value = '新增部门'
+  nextTick(() => deptFormRef.value?.clearValidate())
 }
 
 //编辑
 const edit = async (id) => {
+  try {
   const result = await queryByIdApi(id)
   //重置表单的校验规则-提示信息
   if(deptFormRef.value) {
-    deptFormRef.value.resetFields()
+    deptFormRef.value.clearValidate()
   }
   if(result.code == 1) {
     dept.value = result.data
@@ -55,35 +58,27 @@ const edit = async (id) => {
   } else {
     ElMessage.error('查询部门失败：' + result.msg)
   }
+  } catch { /* 请求错误已统一提示。 */ }
 }
 
 //保存部门信息
 const save = async () => {
   // 表单校验
+  if(saving.value) return
   const valid = await deptFormRef.value.validate().catch(() => false)
   if (!valid) return
 
-// 校验通过后，再执行原来的 addApi(dept.value)
-// 有 ID 调用修改接口，没有 ID 调用新增接口，只发送一次请求。
-const result = dept.value.id
-  ? await updateApi(dept.value)
-  : await addApi(dept.value)
-
-  if(dept.value.id) {
-    // 如果有 id，说明是编辑操作，调用 updateApi
-    result = await updateApi(dept.value)
-  } else {
-    // 如果没有 id，说明是新增操作，调用 addApi
-    result = await addApi(dept.value)
-  }
-
-  if (result.code == 1) {
-    ElMessage.success('保存部门成功')
-    dialogFormVisible.value = false
-    search() // 刷新部门列表
-  } else {
-    ElMessage.error('保存部门失败：' + result.msg)
-  }
+  // 有 ID 修改，没有 ID 新增；禁止重复点击保存。
+  saving.value = true
+  try {
+    const result = dept.value.id ? await updateApi(dept.value) : await addApi(dept.value)
+    if (result.code === 1) {
+      ElMessage.success('保存部门成功')
+      dialogFormVisible.value = false
+      await search()
+    } else ElMessage.error(result.msg || '保存失败')
+  } catch { /* 请求错误由拦截器统一提示。 */ }
+  finally { saving.value = false }
 }
 
 //表单校验
@@ -157,7 +152,7 @@ const deleteDept = async (id) => {
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button type="primary" @click="save">确定</el-button>
+        <el-button type="primary" :loading="saving" @click="save">确定</el-button>
       </div>
     </template>
   </el-dialog>
@@ -166,7 +161,7 @@ const deleteDept = async (id) => {
 <style scoped>
   /* 给按钮的容器加点下边距 */
   .container {
-    margin-bottom: 20px; 
+    margin-bottom: 20px;
   }
 
   /* 如果想让标题和按钮之间也有距离，可以调 h1 的 margin */
